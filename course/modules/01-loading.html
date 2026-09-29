@@ -1,0 +1,239 @@
+    <section class="module" id="module-1" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">01</span>
+          <h1 class="module-title">Cutting the Script into Cue Cards</h1>
+          <p class="module-subtitle">How a plain text file becomes the list of lines the app steps through</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">What the app actually does</h2>
+            <p>Lyrics Trainer shows you a song or poem <strong>one line at a time</strong>, so you can memorise it the way an actor learns a part. You press Next, swipe, or let it auto-advance. Behind that simple screen sits a small <span class="term" data-definition="A Progressive Web App is a website that can be installed like an app and keep working offline. When you ask AI for one, you are asking for a manifest file plus a service worker.">Progressive Web App (PWA)</span> written in <span class="term" data-definition="TypeScript is JavaScript with type labels added, so mistakes like passing text where a number belongs are caught before the code runs. It gets converted (compiled) to plain JavaScript for the browser.">TypeScript</span>.</p>
+
+            <div class="file-tree">
+              <div class="ft-folder open">
+                <span class="ft-name">src/</span>
+                <span class="ft-desc">The code you edit</span>
+                <div class="ft-children">
+                  <div class="ft-file">
+                    <span class="ft-name">lyrics-core.ts</span>
+                    <span class="ft-desc">Pure logic: splitting text, counting, validating. No screen access at all</span>
+                  </div>
+                  <div class="ft-file">
+                    <span class="ft-name">script.ts</span>
+                    <span class="ft-desc">The wiring: buttons, keys, rendering, saving</span>
+                  </div>
+                </div>
+              </div>
+              <div class="ft-folder open">
+                <span class="ft-name">public/</span>
+                <span class="ft-desc">What the browser receives</span>
+                <div class="ft-children">
+                  <div class="ft-file">
+                    <span class="ft-name">index.html</span>
+                    <span class="ft-desc">The page skeleton: lyric box, buttons, progress bar</span>
+                  </div>
+                  <div class="ft-folder">
+                    <span class="ft-name">lyrics/</span>
+                    <span class="ft-desc">sonnet_18.txt and casey_at_the_bat.txt</span>
+                  </div>
+                  <div class="ft-file">
+                    <span class="ft-name">service-worker.js</span>
+                    <span class="ft-desc">Offline support (module 6)</span>
+                  </div>
+                </div>
+              </div>
+              <div class="ft-folder">
+                <span class="ft-name">tests/</span>
+                <span class="ft-desc">Vitest suites that prove it all works</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a stagehand with scissors</h2>
+            <p>Imagine a stagehand given a whole script on one long sheet. Before the show, they cut it into <strong>cue cards</strong>, one line each, and throw away the blank strips. The app does exactly that the moment it opens.</p>
+
+            <div class="flow-steps">
+              <div class="flow-step">
+                <div class="flow-step-num">1</div>
+                <p>Fetch the whole .txt file</p>
+              </div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step">
+                <div class="flow-step-num">2</div>
+                <p>Cut at every line break</p>
+              </div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step">
+                <div class="flow-step-num">3</div>
+                <p>Trim spaces, drop blank strips</p>
+              </div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step">
+                <div class="flow-step-num">4</div>
+                <p>Keep the stack of cards</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Watch the file travel</h2>
+            <p>Click through the journey from the moment the page opens to the moment the first line is ready.</p>
+
+            <div class="flow-animation" data-steps='[
+              {"highlight":"flow-m1-page","label":"The page opens and init() starts running"},
+              {"highlight":"flow-m1-server","label":"script.ts fetches lyrics/sonnet_18.txt?v=1759... (a fresh timestamp every time)","packet":true,"from":"m1-page","to":"m1-server"},
+              {"highlight":"flow-m1-server","label":"The server sends back one long block of text"},
+              {"highlight":"flow-m1-core","label":"The text is handed to processLyricsText() in lyrics-core.ts","packet":true,"from":"m1-server","to":"m1-core"},
+              {"highlight":"flow-m1-core","label":"Split on line breaks, trim each line, throw away the empty ones"},
+              {"highlight":"flow-m1-lyrics","label":"The result is stored in the lyrics array: 14 cue cards for a sonnet","packet":true,"from":"m1-core","to":"m1-lyrics"}
+            ]'>
+              <div class="flow-actors">
+                <div class="flow-actor" id="flow-m1-page">
+                  <div class="flow-actor-icon">P</div>
+                  <span>Page (script.ts)</span>
+                </div>
+                <div class="flow-actor" id="flow-m1-server">
+                  <div class="flow-actor-icon">S</div>
+                  <span>Server</span>
+                </div>
+                <div class="flow-actor" id="flow-m1-core">
+                  <div class="flow-actor-icon">C</div>
+                  <span>lyrics-core.ts</span>
+                </div>
+                <div class="flow-actor" id="flow-m1-lyrics">
+                  <div class="flow-actor-icon">L</div>
+                  <span>lyrics array</span>
+                </div>
+              </div>
+              <div class="flow-packet"></div>
+              <div class="flow-step-label">Click "Next Step" to begin</div>
+              <div class="flow-controls">
+                <button class="btn flow-next-btn">Next Step</button>
+                <button class="btn flow-reset-btn">Restart</button>
+                <span class="flow-progress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The scissors, in code</h2>
+            <p>This is the whole cutting step, from <code>src/lyrics-core.ts</code>. It is a <span class="term" data-definition="A pure function only looks at what you give it and only hands back an answer. It never touches the screen, the network or saved data, which makes it trivial to test.">pure function</span>: text goes in, a list comes out, nothing else is touched.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/lyrics-core.ts</span>
+                <pre><code><span class="code-line"><span class="code-comment">/** Split raw text into trimmed, non-empty lines. Handles \n and \r\n. */</span></span>
+<span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">processLyricsText</span>(text: <span class="code-keyword">string</span>): <span class="code-keyword">string</span>[] {</span>
+<span class="code-line">    <span class="code-keyword">return</span> text</span>
+<span class="code-line">        .<span class="code-function">split</span>(<span class="code-string">/\r?\n/</span>)</span>
+<span class="code-line">        .<span class="code-function">map</span>(line <span class="code-operator">=&gt;</span> line.<span class="code-function">trim</span>())</span>
+<span class="code-line">        .<span class="code-function">filter</span>(line <span class="code-operator">=&gt;</span> line.length <span class="code-operator">&gt;</span> <span class="code-number">0</span>);</span>
+<span class="code-line">}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">A note to humans: this works for files from Mac/Linux (\n) and from Windows (\r\n).</p>
+                  <p class="tl">Define a tool called processLyricsText. It takes text and promises to hand back a list of strings.</p>
+                  <p class="tl">Start with the raw text...</p>
+                  <p class="tl">...cut it at every line break, with or without the Windows carriage return...</p>
+                  <p class="tl">...shave the spaces off both ends of every piece...</p>
+                  <p class="tl">...and keep only pieces that still have at least one character.</p>
+                  <p class="tl">Done: the stack of cue cards goes back to whoever asked.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout-accent">
+              <div class="callout-icon">&#128161;</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why the logic lives in its own file</strong>
+                <p>Keeping <span class="term" data-definition="The DOM (Document Object Model) is the browser's live, editable version of the page. Code changes what you see by changing the DOM.">DOM</span>-free logic in <code>lyrics-core.ts</code> means tests can call it directly with a string. Tell an AI "put this in the pure core and unit-test it" and you get code that is easy to check.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The fetch, and its odd little timestamp</h2>
+            <p>From <code>src/script.ts</code>, inside <code>loadLyricsFromPath</code>. The <span class="term" data-definition="fetch is the browser's built-in way to ask a server for a file or data. It returns a promise: an IOU that later resolves to the response.">fetch</span> adds a <span class="term" data-definition="A cache-buster is a meaningless, always-changing value (here the current time) added to a URL so no cache can reuse an old copy. Ask AI to 'add a cache-buster' when stale files are the problem.">cache-buster</span> to the URL.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line">        <span class="code-comment">// Fetch the lyrics file (cache-buster avoids 304/empty-body responses)</span></span>
+<span class="code-line">        <span class="code-keyword">const</span> res = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(<span class="code-string">`${filePath}?v=${Date.now()}`</span>, { <span class="code-property">cache</span>: <span class="code-string">'no-store'</span> });</span>
+<span class="code-line">        <span class="code-keyword">if</span> (!res.ok) {</span>
+<span class="code-line">            <span class="code-keyword">throw new</span> <span class="code-function">Error</span>(<span class="code-string">`Failed to load lyrics (${res.status})`</span>);</span>
+<span class="code-line">        }</span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="code-keyword">const</span> text = <span class="code-keyword">await</span> res.<span class="code-function">text</span>();</span>
+<span class="code-line">        <span class="code-keyword">const</span> processedLyrics = <span class="code-function">processLyricsText</span>(text);</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">A reminder of why the URL looks strange.</p>
+                  <p class="tl">Ask for the file with "?v=" plus the current time glued on, and tell the browser not to keep a copy. Wait for the answer.</p>
+                  <p class="tl">If the server said anything other than "OK"...</p>
+                  <p class="tl">...stop and raise an error that includes the status code (404, 500...).</p>
+                  <p class="tl">(end of the check)</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Read the body of the response as plain text.</p>
+                  <p class="tl">Hand it to the scissors from the previous screen.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module1">
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Exactly. Blank lines are thrown away by the filter step, so a verse gap never becomes its own empty card."
+                   data-explanation-wrong="Not quite. Look at the last step of processLyricsText: anything with zero characters after trimming is dropped, so blank lines never become cards.">
+                <h3 class="quiz-question">You upload a song with an empty line between each verse. What does the trainer show when you reach a verse break?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>An empty screen for one step</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It jumps straight to the first line of the next verse</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>An error, because blank lines are invalid</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Right. Parsing rules belong in the pure core, and a new unit test with a sample string proves the change without opening a browser."
+                   data-explanation-wrong="Close, but think about where the cutting rule lives. It is in the pure function in lyrics-core.ts, which is also the easiest place to test.">
+                <h3 class="quiz-question">You want lines starting with "#" treated as comments and skipped. What do you ask the AI to change?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The render() function, so it hides lines that start with #</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The .txt files, deleting the comment lines by hand</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>processLyricsText in lyrics-core.ts, plus a unit test for it</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Yes. Without the timestamp the browser can hand back a stale or empty cached copy, so an edited lyrics file would not show up."
+                   data-explanation-wrong="Not quite. The ?v= value changes every time precisely so that no cache can reuse an old copy. Remove it and edits to a lyrics file may not appear.">
+                <h3 class="quiz-question">A teammate removes the <code>?v=${Date.now()}</code> part to make URLs look cleaner. What is the likely symptom?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Edited lyrics files sometimes still show the old text</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The app stops loading lyrics entirely</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Nothing at all changes</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>

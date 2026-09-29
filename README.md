@@ -157,6 +157,7 @@ To access on mobile devices on the same network:
 │   ├── serve.ts                # Bun static server for public/
 │   └── bun-test-guard.ts       # Redirects `bun test` to `bun run test`
 ├── tests/                      # Vitest suites (see TESTING.md)
+├── course/                     # Interactive course about this codebase
 ├── bunfig.toml
 ├── vitest.config.ts
 ├── tsconfig.json
@@ -169,6 +170,16 @@ The app is a full Progressive Web App with:
 - A service worker that precaches the app shell and bundled lyrics
 - Network-first loading for lyrics (with cache fallback when offline)
 - App manifest and icons for installation
+
+## Interactive course
+
+`course/` holds a static, six-module interactive course that walks through this codebase for non-specialists. It follows one path: loading a lyrics file, the two-number state, rendering a line, keyboard and swipe input, `localStorage`, and the offline service worker. Each module has real code snippets with plain-English translations, glossary tooltips, animations and a short quiz. No build step or server is needed:
+
+```bash
+open course/index.html
+```
+
+The page is assembled from `course/modules/*.html`. After editing a module, rebuild it with `cd course && bash build.sh`.
 
 ## Suggested Improvements
 

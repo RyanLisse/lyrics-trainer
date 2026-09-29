@@ -1,0 +1,205 @@
+    <section class="module" id="module-6" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">06</span>
+          <h1 class="module-title">Stocking the Hut: Offline with a Service Worker</h1>
+          <p class="module-subtitle">How the app keeps working on a train with no signal</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a mountain hut stocked before the storm</h2>
+            <p>Walkers stock a mountain hut in good weather, so when the pass closes there is still food on the shelves. A <span class="term" data-definition="A service worker is a small script the browser runs in the background, separate from the page. It sits between the page and the network and can answer requests itself, which is what makes offline mode possible.">service worker</span> does that for the app: on first visit it fills a <span class="term" data-definition="A cache is a stored copy of something you fetched before, kept so you can reuse it quickly or when the original is unavailable.">cache</span> with every file the app needs.</p>
+
+            <div class="step-cards">
+              <div class="step-card">
+                <div class="step-num">1</div>
+                <div class="step-body"><strong>Register</strong><p>index.html asks the browser to run <code>service-worker.js</code> in the background.</p></div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">2</div>
+                <div class="step-body"><strong>Install: stock the shelves</strong><p>Every file in the ASSETS list is downloaded into a cache named <code>lyrics-trainer-v2</code>.</p></div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">3</div>
+                <div class="step-body"><strong>Activate: clear out old stock</strong><p>Caches from older versions (v1 and so on) are deleted.</p></div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">4</div>
+                <div class="step-body"><strong>Fetch: answer every request</strong><p>From now on the worker decides: go to the network, or serve from the shelves?</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The shopping list</h2>
+            <p>The install step is all-or-nothing. If a single file on this list does not exist, the whole install fails and offline mode quietly never happens. That is exactly the bug the original exercise had.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">public/service-worker.js</span>
+                <pre><code><span class="code-line"><span class="code-comment">// install: cache app shell</span></span>
+<span class="code-line"><span class="code-comment">/** @param {ExtendableEvent} e */</span></span>
+<span class="code-line">self.<span class="code-function">addEventListener</span>(<span class="code-string">'install'</span>, (e) <span class="code-operator">=&gt;</span> {</span>
+<span class="code-line">    e.<span class="code-function">waitUntil</span>(</span>
+<span class="code-line">        caches.<span class="code-function">open</span>(CACHE).<span class="code-function">then</span>((c) <span class="code-operator">=&gt;</span> c.<span class="code-function">addAll</span>(ASSETS))</span>
+<span class="code-line">    );</span>
+<span class="code-line">});</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">This part runs once, when a new version of the worker is installed.</p>
+                  <p class="tl">(a type hint for editors)</p>
+                  <p class="tl">When the browser says "you are being installed"...</p>
+                  <p class="tl">...ask it to wait until we are finished...</p>
+                  <p class="tl">...open the cache for this version and download every file on the ASSETS list into it.</p>
+                  <p class="tl">If any single download fails, the install fails.</p>
+                  <p class="tl">&nbsp;</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Fresh when possible, stored when not</h2>
+            <p>Lyrics files change, so for them the worker tries the network first and keeps a copy. The app shell (HTML, CSS, JS) rarely changes, so it comes straight from the shelves. This mix is called a <span class="term" data-definition="A caching strategy is the rule for choosing between network and cache. 'Network-first' tries the internet and falls back to the cache; 'cache-first' uses the stored copy if there is one.">caching strategy</span>.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">public/service-worker.js</span>
+                <pre><code><span class="code-line">            <span class="code-keyword">if</span> (<span class="code-function">isFreshContent</span>(url)) {</span>
+<span class="code-line">                <span class="code-keyword">try</span> {</span>
+<span class="code-line">                    <span class="code-keyword">const</span> net = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(req);</span>
+<span class="code-line">                    <span class="code-keyword">if</span> (net.ok) {</span>
+<span class="code-line">                        <span class="code-keyword">const</span> cache = <span class="code-keyword">await</span> caches.<span class="code-function">open</span>(CACHE);</span>
+<span class="code-line">                        <span class="code-comment">// Store without the ?v= cache-buster so offline lookups match</span></span>
+<span class="code-line">                        <span class="code-keyword">await</span> cache.<span class="code-function">put</span>(url.origin + url.pathname, net.<span class="code-function">clone</span>());</span>
+<span class="code-line">                    }</span>
+<span class="code-line">                    <span class="code-keyword">return</span> net;</span>
+<span class="code-line">                } <span class="code-keyword">catch</span> { <span class="code-comment">/* offline: fall through to cache */</span> }</span>
+<span class="code-line">            }</span>
+<span class="code-line">            <span class="code-comment">// The app adds ?v=&lt;timestamp&gt; to lyrics requests, so ignore the query string</span></span>
+<span class="code-line">            <span class="code-keyword">const</span> cached = <span class="code-keyword">await</span> caches.<span class="code-function">match</span>(req, { <span class="code-property">ignoreSearch</span>: <span class="code-keyword">true</span> });</span>
+<span class="code-line">            <span class="code-keyword">return</span> cached || <span class="code-function">fetch</span>(req);</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Is this a lyrics file or the playlist? Then:</p>
+                  <p class="tl">try the internet first...</p>
+                  <p class="tl">...and wait for the real file.</p>
+                  <p class="tl">If it arrived fine...</p>
+                  <p class="tl">...open the shelves...</p>
+                  <p class="tl">(why the next line strips the address)</p>
+                  <p class="tl">...and store a copy under the plain address, without the timestamp.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Give the page the fresh file.</p>
+                  <p class="tl">No signal? Do not panic; carry on to the shelves below.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">(why the next line ignores the ?v= part)</p>
+                  <p class="tl">Look for a stored copy, ignoring the ?v=... part (remember the cache-buster from module 1).</p>
+                  <p class="tl">Found one? Serve it. If not, try the network as a last resort.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Follow a request with no signal</h2>
+            <p>You are on a train, open the app, and it asks for Sonnet 18. Step through what the worker does.</p>
+
+            <div class="flow-animation" data-steps='[
+              {"highlight":"flow-m6-page","label":"The page asks for lyrics/sonnet_18.txt?v=1759... with a fresh timestamp"},
+              {"highlight":"flow-m6-sw","label":"The service worker intercepts the request before it leaves the device","packet":true,"from":"m6-page","to":"m6-sw"},
+              {"highlight":"flow-m6-net","label":"It is a .txt file, so it tries the network first","packet":true,"from":"m6-sw","to":"m6-net"},
+              {"highlight":"flow-m6-net","label":"No signal: the fetch throws an error, which is caught"},
+              {"highlight":"flow-m6-cache","label":"Fall back to the cache, ignoring the ?v= part of the address","packet":true,"from":"m6-sw","to":"m6-cache"},
+              {"highlight":"flow-m6-cache","label":"Found: the copy stored during install (or on a previous online visit)"},
+              {"highlight":"flow-m6-page","label":"The page gets the text, cuts it into lines and renders line 1 as usual","packet":true,"from":"m6-cache","to":"m6-page"}
+            ]'>
+              <div class="flow-actors">
+                <div class="flow-actor" id="flow-m6-page">
+                  <div class="flow-actor-icon">P</div>
+                  <span>Page</span>
+                </div>
+                <div class="flow-actor" id="flow-m6-sw">
+                  <div class="flow-actor-icon">W</div>
+                  <span>Service worker</span>
+                </div>
+                <div class="flow-actor" id="flow-m6-net">
+                  <div class="flow-actor-icon">N</div>
+                  <span>Network</span>
+                </div>
+                <div class="flow-actor" id="flow-m6-cache">
+                  <div class="flow-actor-icon">C</div>
+                  <span>Cache</span>
+                </div>
+              </div>
+              <div class="flow-packet"></div>
+              <div class="flow-step-label">Click "Next Step" to begin</div>
+              <div class="flow-controls">
+                <button class="btn flow-next-btn">Next Step</button>
+                <button class="btn flow-reset-btn">Restart</button>
+                <span class="flow-progress"></span>
+              </div>
+            </div>
+
+            <div class="callout callout-info">
+              <div class="callout-icon">&#128270;</div>
+              <div class="callout-content">
+                <strong class="callout-title">The whole journey, in one sentence</strong>
+                <p>A text file is fetched (through the worker), cut into lines, reduced to two numbers of state, rendered, driven by keys and swipes, and remembered in localStorage. You now know every stage.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module6">
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Right. A new public file must go on the ASSETS list, and bumping CACHE makes browsers install the new worker and drop the old cache. The project's CLAUDE.md says exactly this."
+                   data-explanation-wrong="Remember the shopping list. Offline mode only has what ASSETS lists, and returning visitors only re-install when the worker file changes, which is what bumping the CACHE name does.">
+                <h3 class="quiz-question">You add a new bundled song, <code>public/lyrics/yesterday.txt</code>. What must change for it to work offline for returning users?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Nothing; the service worker finds new files automatically</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Only lyrics-list.json</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Add it to lyrics-list.json and ASSETS, and bump CACHE to v3</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Yes. cache.addAll is all-or-nothing: one 404 and the whole install is rejected, so nothing is cached and offline mode silently never starts."
+                   data-explanation-wrong="Think about how install works: cache.addAll either stores every file or fails as a whole. A single missing file means no cache at all, with no visible error for the user.">
+                <h3 class="quiz-question">Someone typos a filename in ASSETS. Online, the app works perfectly. What breaks?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Offline mode: the install fails, so nothing at all is cached</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Just that one file is missing offline; the rest works</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The page shows an error banner immediately</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Exactly. Lyrics are network-first, so online you always get the newest version. Shell files like style.css are cache-first and only update when a new worker version installs."
+                   data-explanation-wrong="Compare the two strategies. Lyrics (.txt) are network-first, so a fix shows up on the next online load. style.css is served cache-first until the worker version changes.">
+                <h3 class="quiz-question">You fix a typo in a lyrics file and also change a colour in style.css, then deploy. A returning user reloads online. What do they see?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Both changes immediately</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The lyric fix, but the old colour until CACHE is bumped</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Neither change until they clear their browser data</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module6')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module6')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>

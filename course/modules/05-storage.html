@@ -1,0 +1,137 @@
+    <section class="module" id="module-5" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">05</span>
+          <h1 class="module-title">A Note for Tomorrow: localStorage</h1>
+          <p class="module-subtitle">How the app remembers your line, your speed and your song across reloads</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a note in your coat pocket</h2>
+            <p>Leave a note in your coat pocket tonight ("stopped at line 7, speed 3s") and tomorrow's you picks up exactly there. <span class="term" data-definition="localStorage is a small notebook the browser keeps for each website. It stores text under names (keys) and survives closing the tab, but it is private to that browser on that device.">localStorage</span> is that pocket. It only holds text, so the state is written as <span class="term" data-definition="JSON (JavaScript Object Notation) is a text format for structured data, like {&quot;idx&quot;:6,&quot;delay&quot;:3000}. JSON.stringify turns data into that text; JSON.parse turns it back.">JSON</span>.</p>
+
+            <div class="badge-list">
+              <div class="badge-item"><code class="badge-code">lyricsTrainerState</code><span class="badge-desc">Your line and speed: {"idx":6,"delay":3000}</span></div>
+              <div class="badge-item"><code class="badge-code">lyricsTrainerTheme</code><span class="badge-desc">"dark" or "light", if you picked one</span></div>
+              <div class="badge-item"><code class="badge-code">lyricsPath</code><span class="badge-desc">Which bundled file you had open, e.g. lyrics/casey_at_the_bat.txt</span></div>
+              <div class="badge-item"><code class="badge-code">customLyrics</code><span class="badge-desc">The full list of lines from a file you uploaded</span></div>
+              <div class="badge-item"><code class="badge-code">lyricsSource</code><span class="badge-desc">"custom" or "playlist": where the current lyrics came from</span></div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Reading and writing the note</h2>
+            <p>Two tiny functions in <code>src/script.ts</code>. Saving happens at the end of every <code>render()</code>, so the note is never more than one line out of date.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line"><span class="code-comment">/* ---------- load / persist ---------- */</span></span>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">loadState</span>(): TrainerState {</span>
+<span class="code-line">    <span class="code-keyword">try</span> { <span class="code-keyword">return</span> <span class="code-function">parseState</span>(localStorage.<span class="code-function">getItem</span>(STORAGE_KEY)); }</span>
+<span class="code-line">    <span class="code-keyword">catch</span> { <span class="code-keyword">return</span> { ...DEFAULT_STATE }; }</span>
+<span class="code-line">}</span>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">saveState</span>(s: TrainerState){ localStorage.<span class="code-function">setItem</span>(STORAGE_KEY, JSON.<span class="code-function">stringify</span>(s)); }</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">This section is about remembering.</p>
+                  <p class="tl">To read the note:</p>
+                  <p class="tl">take the text stored under "lyricsTrainerState" and let parseState check it carefully...</p>
+                  <p class="tl">...and if the browser refuses access entirely (some private modes do), just start fresh.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">To write the note: turn the state into JSON text and store it under the same name.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Never trust a note you did not just write</h2>
+            <p>The stored text could be from an old version, edited by hand in <span class="term" data-definition="Developer tools (DevTools) are the inspection panels built into every browser. The Application tab lets you see and edit localStorage directly.">DevTools</span>, or simply corrupt. <code>parseState</code> in <code>src/lyrics-core.ts</code> checks each field on its own and repairs what it can.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/lyrics-core.ts</span>
+                <pre><code><span class="code-line">    <span class="code-keyword">const</span> { idx, delay } = parsed <span class="code-keyword">as</span> <span class="code-function">Partial</span>&lt;<span class="code-function">Record</span>&lt;<span class="code-keyword">keyof</span> TrainerState, <span class="code-keyword">unknown</span>&gt;&gt;;</span>
+<span class="code-line">    <span class="code-keyword">return</span> {</span>
+<span class="code-line">        <span class="code-property">idx</span>: <span class="code-keyword">typeof</span> idx === <span class="code-string">'number'</span> &amp;&amp; Number.<span class="code-function">isFinite</span>(idx) &amp;&amp; idx &gt;= <span class="code-number">0</span></span>
+<span class="code-line">            ? Math.<span class="code-function">trunc</span>(idx) : DEFAULT_STATE.idx,</span>
+<span class="code-line">        <span class="code-property">delay</span>: <span class="code-keyword">typeof</span> delay === <span class="code-string">'number'</span> &amp;&amp; Number.<span class="code-function">isFinite</span>(delay)</span>
+<span class="code-line">            ? Math.<span class="code-function">min</span>(Math.<span class="code-function">max</span>(delay, MIN_DELAY), MAX_DELAY) : DEFAULT_STATE.delay,</span>
+<span class="code-line">    };</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Pull out the two fields, treating them as "unknown" until proven otherwise.</p>
+                  <p class="tl">Build a fresh, clean state:</p>
+                  <p class="tl">idx is kept only if it is a real, non-negative number...</p>
+                  <p class="tl">...with any fraction chopped off. Otherwise use 0.</p>
+                  <p class="tl">delay is kept only if it is a real number...</p>
+                  <p class="tl">...and is squeezed between 0.5s and 10s. Otherwise use 3s.</p>
+                  <p class="tl">Hand back the repaired state.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout-accent">
+              <div class="callout-icon">&#128161;</div>
+              <div class="callout-content">
+                <strong class="callout-title">Validate at the border</strong>
+                <p>Anything that crosses into your app (saved data, uploads, network replies) is untrusted input. Checking it once at the border means the rest of the code can assume it is clean. When you ask an AI to persist data, also ask it to "validate on load".</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module5">
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Right. idx 40 is a valid number, so parseState keeps it, and init() then runs clampIndex(40, 14) which pins it to the last line. Two layers, no crash."
+                   data-explanation-wrong="Walk it through: parseState only checks that idx is a real non-negative number, which 40 is. But init() passes it through clampIndex against the real lyrics length, so it lands on the last line.">
+                <h3 class="quiz-question">You were on line 41 of a long song, then switched to a 14-line sonnet, and the saved idx is still 40. What happens on reload?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The app crashes trying to show line 41</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It opens on the sonnet's last line, because clampIndex pins 40 to 13</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It shows a blank line</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Yes. localStorage belongs to one browser on one device. Syncing between devices needs a server or an account system, which this app deliberately does not have."
+                   data-explanation-wrong="Not quite. localStorage never leaves the device. Nothing in this app talks to a server except to download files, so there is nowhere for your position to be shared.">
+                <h3 class="quiz-question">A user practises on their laptop, then opens the app on their phone. Where does the phone start?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>At the same line, because the browser syncs localStorage</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>At the same line, because the service worker shares it</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Wherever the phone itself last was (or line 1), since storage is per device</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Exactly. Add the field to TrainerState and DEFAULT_STATE, validate it in parseState (with tests), and render/saveState carry it automatically."
+                   data-explanation-wrong="The existing pipeline already saves the whole state on every render. The work is to extend the shape and teach parseState to validate the new field, so bad saved values cannot break the app.">
+                <h3 class="quiz-question">You add a "font size" setting. What is the complete, safe way to persist it?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Add it to TrainerState and DEFAULT_STATE, and validate it in parseState with a test</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Call localStorage.setItem('fontSize', ...) from the button and read it back with no checks</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Store it in a cookie instead</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>

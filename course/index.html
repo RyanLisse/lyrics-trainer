@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lyrics Trainer, Line by Line</title>
+
+  <!-- Google Fonts: Bricolage Grotesque · DM Sans · JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <!--
+    CUSTOMIZE PER COURSE — change only the three accent variables below.
+    Options:
+      vermillion  #D94F30 / #C4432A / #FDEEE9 / #E8836C  (default)
+      coral       #E06B56 / #C85A47 / #FDECEA / #E89585
+      teal        #2A7B9B / #1F6280 / #E4F2F7 / #5A9DB8
+      amber       #D4A843 / #BF9530 / #FDF5E0 / #E0C070
+      forest      #2D8B55 / #226B41 / #E8F5EE / #5AAD7A
+  -->
+  <style>
+    :root {
+      --color-accent:       #E06B56;
+      --color-accent-hover: #C85A47;
+      --color-accent-light: #FDECEA;
+      --color-accent-muted: #E89585;
+    }
+  </style>
+
+  <script src="main.js" defer></script>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div class="nav-inner">
+      <span class="nav-title">Lyrics Trainer, Line by Line</span>
+      <div class="nav-dots" id="nav-dots" role="tablist">
+        <button class="nav-dot" data-target="module-1" data-tooltip="Cutting the Script into Cue Cards" role="tab" aria-label="Module 1: Cutting the Script into Cue Cards"></button>
+        <button class="nav-dot" data-target="module-2" data-tooltip="Two Numbers Run the Show" role="tab" aria-label="Module 2: Two Numbers Run the Show"></button>
+        <button class="nav-dot" data-target="module-3" data-tooltip="Calling the Cue: Rendering One Line" role="tab" aria-label="Module 3: Calling the Cue: Rendering One Line"></button>
+        <button class="nav-dot" data-target="module-4" data-tooltip="Every Door Leads to goTo" role="tab" aria-label="Module 4: Every Door Leads to goTo"></button>
+        <button class="nav-dot" data-target="module-5" data-tooltip="A Note for Tomorrow: localStorage" role="tab" aria-label="Module 5: A Note for Tomorrow: localStorage"></button>
+        <button class="nav-dot" data-target="module-6" data-tooltip="Stocking the Hut: Offline with a Service Worker" role="tab" aria-label="Module 6: Stocking the Hut: Offline with a Service Worker"></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <!-- modules/*.html content is assembled here by build.sh -->
+    <section class="module" id="module-1" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">01</span>
+          <h1 class="module-title">Cutting the Script into Cue Cards</h1>
+          <p class="module-subtitle">How a plain text file becomes the list of lines the app steps through</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">What the app actually does</h2>
+            <p>Lyrics Trainer shows you a song or poem <strong>one line at a time</strong>, so you can memorise it the way an actor learns a part. You press Next, swipe, or let it auto-advance. Behind that simple screen sits a small <span class="term" data-definition="A Progressive Web App is a website that can be installed like an app and keep working offline. When you ask AI for one, you are asking for a manifest file plus a service worker.">Progressive Web App (PWA)</span> written in <span class="term" data-definition="TypeScript is JavaScript with type labels added, so mistakes like passing text where a number belongs are caught before the code runs. It gets converted (compiled) to plain JavaScript for the browser.">TypeScript</span>.</p>
+
+            <div class="file-tree">
+              <div class="ft-folder open">
+                <span class="ft-name">src/</span>
+                <span class="ft-desc">The code you edit</span>
+                <div class="ft-children">
+                  <div class="ft-file">
+                    <span class="ft-name">lyrics-core.ts</span>
+                    <span class="ft-desc">Pure logic: splitting text, counting, validating. No screen access at all</span>
+                  </div>
+                  <div class="ft-file">
+                    <span class="ft-name">script.ts</span>
+                    <span class="ft-desc">The wiring: buttons, keys, rendering, saving</span>
+                  </div>
+                </div>
+              </div>
+              <div class="ft-folder open">
+                <span class="ft-name">public/</span>
+                <span class="ft-desc">What the browser receives</span>
+                <div class="ft-children">
+                  <div class="ft-file">
+                    <span class="ft-name">index.html</span>
+                    <span class="ft-desc">The page skeleton: lyric box, buttons, progress bar</span>
+                  </div>
+                  <div class="ft-folder">
+                    <span class="ft-name">lyrics/</span>
+                    <span class="ft-desc">sonnet_18.txt and casey_at_the_bat.txt</span>
+                  </div>
+                  <div class="ft-file">
+                    <span class="ft-name">service-worker.js</span>
+                    <span class="ft-desc">Offline support (module 6)</span>
+                  </div>
+                </div>
+              </div>
+              <div class="ft-folder">
+                <span class="ft-name">tests/</span>
+                <span class="ft-desc">Vitest suites that prove it all works</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a stagehand with scissors</h2>
+            <p>Imagine a stagehand given a whole script on one long sheet. Before the show, they cut it into <strong>cue cards</strong>, one line each, and throw away the blank strips. The app does exactly that the moment it opens.</p>
+
+            <div class="flow-steps">
+              <div class="flow-step">
+                <div class="flow-step-num">1</div>
+                <p>Fetch the whole .txt file</p>
+              </div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step">
+                <div class="flow-step-num">2</div>
+                <p>Cut at every line break</p>
+              </div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step">
+                <div class="flow-step-num">3</div>
+                <p>Trim spaces, drop blank strips</p>
+              </div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step">
+                <div class="flow-step-num">4</div>
+                <p>Keep the stack of cards</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Watch the file travel</h2>
+            <p>Click through the journey from the moment the page opens to the moment the first line is ready.</p>
+
+            <div class="flow-animation" data-steps='[
+              {"highlight":"flow-m1-page","label":"The page opens and init() starts running"},
+              {"highlight":"flow-m1-server","label":"script.ts fetches lyrics/sonnet_18.txt?v=1759... (a fresh timestamp every time)","packet":true,"from":"m1-page","to":"m1-server"},
+              {"highlight":"flow-m1-server","label":"The server sends back one long block of text"},
+              {"highlight":"flow-m1-core","label":"The text is handed to processLyricsText() in lyrics-core.ts","packet":true,"from":"m1-server","to":"m1-core"},
+              {"highlight":"flow-m1-core","label":"Split on line breaks, trim each line, throw away the empty ones"},
+              {"highlight":"flow-m1-lyrics","label":"The result is stored in the lyrics array: 14 cue cards for a sonnet","packet":true,"from":"m1-core","to":"m1-lyrics"}
+            ]'>
+              <div class="flow-actors">
+                <div class="flow-actor" id="flow-m1-page">
+                  <div class="flow-actor-icon">P</div>
+                  <span>Page (script.ts)</span>
+                </div>
+                <div class="flow-actor" id="flow-m1-server">
+                  <div class="flow-actor-icon">S</div>
+                  <span>Server</span>
+                </div>
+                <div class="flow-actor" id="flow-m1-core">
+                  <div class="flow-actor-icon">C</div>
+                  <span>lyrics-core.ts</span>
+                </div>
+                <div class="flow-actor" id="flow-m1-lyrics">
+                  <div class="flow-actor-icon">L</div>
+                  <span>lyrics array</span>
+                </div>
+              </div>
+              <div class="flow-packet"></div>
+              <div class="flow-step-label">Click "Next Step" to begin</div>
+              <div class="flow-controls">
+                <button class="btn flow-next-btn">Next Step</button>
+                <button class="btn flow-reset-btn">Restart</button>
+                <span class="flow-progress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The scissors, in code</h2>
+            <p>This is the whole cutting step, from <code>src/lyrics-core.ts</code>. It is a <span class="term" data-definition="A pure function only looks at what you give it and only hands back an answer. It never touches the screen, the network or saved data, which makes it trivial to test.">pure function</span>: text goes in, a list comes out, nothing else is touched.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/lyrics-core.ts</span>
+                <pre><code><span class="code-line"><span class="code-comment">/** Split raw text into trimmed, non-empty lines. Handles \n and \r\n. */</span></span>
+<span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">processLyricsText</span>(text: <span class="code-keyword">string</span>): <span class="code-keyword">string</span>[] {</span>
+<span class="code-line">    <span class="code-keyword">return</span> text</span>
+<span class="code-line">        .<span class="code-function">split</span>(<span class="code-string">/\r?\n/</span>)</span>
+<span class="code-line">        .<span class="code-function">map</span>(line <span class="code-operator">=&gt;</span> line.<span class="code-function">trim</span>())</span>
+<span class="code-line">        .<span class="code-function">filter</span>(line <span class="code-operator">=&gt;</span> line.length <span class="code-operator">&gt;</span> <span class="code-number">0</span>);</span>
+<span class="code-line">}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">A note to humans: this works for files from Mac/Linux (\n) and from Windows (\r\n).</p>
+                  <p class="tl">Define a tool called processLyricsText. It takes text and promises to hand back a list of strings.</p>
+                  <p class="tl">Start with the raw text...</p>
+                  <p class="tl">...cut it at every line break, with or without the Windows carriage return...</p>
+                  <p class="tl">...shave the spaces off both ends of every piece...</p>
+                  <p class="tl">...and keep only pieces that still have at least one character.</p>
+                  <p class="tl">Done: the stack of cue cards goes back to whoever asked.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout-accent">
+              <div class="callout-icon">&#128161;</div>
+              <div class="callout-content">
+                <strong class="callout-title">Why the logic lives in its own file</strong>
+                <p>Keeping <span class="term" data-definition="The DOM (Document Object Model) is the browser's live, editable version of the page. Code changes what you see by changing the DOM.">DOM</span>-free logic in <code>lyrics-core.ts</code> means tests can call it directly with a string. Tell an AI "put this in the pure core and unit-test it" and you get code that is easy to check.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The fetch, and its odd little timestamp</h2>
+            <p>From <code>src/script.ts</code>, inside <code>loadLyricsFromPath</code>. The <span class="term" data-definition="fetch is the browser's built-in way to ask a server for a file or data. It returns a promise: an IOU that later resolves to the response.">fetch</span> adds a <span class="term" data-definition="A cache-buster is a meaningless, always-changing value (here the current time) added to a URL so no cache can reuse an old copy. Ask AI to 'add a cache-buster' when stale files are the problem.">cache-buster</span> to the URL.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line">        <span class="code-comment">// Fetch the lyrics file (cache-buster avoids 304/empty-body responses)</span></span>
+<span class="code-line">        <span class="code-keyword">const</span> res = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(<span class="code-string">`${filePath}?v=${Date.now()}`</span>, { <span class="code-property">cache</span>: <span class="code-string">'no-store'</span> });</span>
+<span class="code-line">        <span class="code-keyword">if</span> (!res.ok) {</span>
+<span class="code-line">            <span class="code-keyword">throw new</span> <span class="code-function">Error</span>(<span class="code-string">`Failed to load lyrics (${res.status})`</span>);</span>
+<span class="code-line">        }</span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="code-keyword">const</span> text = <span class="code-keyword">await</span> res.<span class="code-function">text</span>();</span>
+<span class="code-line">        <span class="code-keyword">const</span> processedLyrics = <span class="code-function">processLyricsText</span>(text);</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">A reminder of why the URL looks strange.</p>
+                  <p class="tl">Ask for the file with "?v=" plus the current time glued on, and tell the browser not to keep a copy. Wait for the answer.</p>
+                  <p class="tl">If the server said anything other than "OK"...</p>
+                  <p class="tl">...stop and raise an error that includes the status code (404, 500...).</p>
+                  <p class="tl">(end of the check)</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Read the body of the response as plain text.</p>
+                  <p class="tl">Hand it to the scissors from the previous screen.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module1">
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Exactly. Blank lines are thrown away by the filter step, so a verse gap never becomes its own empty card."
+                   data-explanation-wrong="Not quite. Look at the last step of processLyricsText: anything with zero characters after trimming is dropped, so blank lines never become cards.">
+                <h3 class="quiz-question">You upload a song with an empty line between each verse. What does the trainer show when you reach a verse break?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>An empty screen for one step</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It jumps straight to the first line of the next verse</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>An error, because blank lines are invalid</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Right. Parsing rules belong in the pure core, and a new unit test with a sample string proves the change without opening a browser."
+                   data-explanation-wrong="Close, but think about where the cutting rule lives. It is in the pure function in lyrics-core.ts, which is also the easiest place to test.">
+                <h3 class="quiz-question">You want lines starting with "#" treated as comments and skipped. What do you ask the AI to change?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The render() function, so it hides lines that start with #</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The .txt files, deleting the comment lines by hand</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>processLyricsText in lyrics-core.ts, plus a unit test for it</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Yes. Without the timestamp the browser can hand back a stale or empty cached copy, so an edited lyrics file would not show up."
+                   data-explanation-wrong="Not quite. The ?v= value changes every time precisely so that no cache can reuse an old copy. Remove it and edits to a lyrics file may not appear.">
+                <h3 class="quiz-question">A teammate removes the <code>?v=${Date.now()}</code> part to make URLs look cleaner. What is the likely symptom?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Edited lyrics files sometimes still show the old text</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The app stops loading lyrics entirely</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Nothing at all changes</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+    <section class="module" id="module-2" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">02</span>
+          <h1 class="module-title">Two Numbers Run the Show</h1>
+          <p class="module-subtitle">The app's entire memory of "where am I" fits on a sticky label</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a music stand with a clip and a metronome</h2>
+            <p>A musician practising needs only two facts: <strong>which bar the clip is on</strong> and <strong>how fast the metronome ticks</strong>. Everything else can be worked out from the sheet music. The trainer's <span class="term" data-definition="State is the small set of facts an app keeps in memory to know what is going on right now. Change the state, redraw the screen, and the app is up to date.">state</span> is exactly that pair.</p>
+
+            <div class="pattern-cards">
+              <div class="pattern-card" style="border-top: 3px solid var(--color-actor-1)">
+                <div class="pattern-icon" style="background: var(--color-actor-1)">#</div>
+                <h4 class="pattern-title">idx</h4>
+                <p class="pattern-desc">Which line you are on, counting from 0. Line 1 on screen is idx 0.</p>
+              </div>
+              <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2)">
+                <div class="pattern-icon" style="background: var(--color-actor-2)">&#9201;</div>
+                <h4 class="pattern-title">delay</h4>
+                <p class="pattern-desc">How many milliseconds auto-advance waits. 3000 means 3 seconds.</p>
+              </div>
+              <div class="pattern-card" style="border-top: 3px solid var(--color-actor-3)">
+                <div class="pattern-icon" style="background: var(--color-actor-3)">&#8721;</div>
+                <h4 class="pattern-title">Everything else</h4>
+                <p class="pattern-desc">Counter text, progress %, button labels: all derived from idx and the lyrics list.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The shape of the state</h2>
+            <p>An <span class="term" data-definition="In TypeScript an interface is a named shape: it lists the fields an object must have and their types. It is a contract, not code that runs.">interface</span> declares the shape, and a <span class="term" data-definition="A constant is a named value that never changes after it is set, like a label on a fixed dial setting.">constant</span> gives the starting values.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/lyrics-core.ts</span>
+                <pre><code><span class="code-line"><span class="code-keyword">export interface</span> <span class="code-function">TrainerState</span> {</span>
+<span class="code-line">    <span class="code-property">idx</span>:   <span class="code-keyword">number</span>;</span>
+<span class="code-line">    <span class="code-property">delay</span>: <span class="code-keyword">number</span>;   <span class="code-comment">// milliseconds</span></span>
+<span class="code-line">}</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">export const</span> DEFAULT_STATE: <span class="code-function">Readonly</span>&lt;TrainerState&gt; = { <span class="code-property">idx</span>: <span class="code-number">0</span>, <span class="code-property">delay</span>: <span class="code-number">3000</span> };</span>
+<span class="code-line"><span class="code-keyword">export const</span> MIN_DELAY = <span class="code-number">500</span>;</span>
+<span class="code-line"><span class="code-keyword">export const</span> MAX_DELAY = <span class="code-number">10000</span>;</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Here is the shape every trainer state must have:</p>
+                  <p class="tl">a line number...</p>
+                  <p class="tl">...and a delay, measured in thousandths of a second.</p>
+                  <p class="tl">That is the whole shape.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Start on the first line with a 3-second delay, and nobody may edit this default.</p>
+                  <p class="tl">Auto-advance can never be faster than half a second...</p>
+                  <p class="tl">...or slower than ten seconds.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Moving the clip: next and previous</h2>
+            <p>Next and Previous do not behave symmetrically, and that is a deliberate choice. Read the two small <span class="term" data-definition="A function is a named, reusable set of instructions. You give it inputs (arguments) and it gives back a result.">functions</span> and spot the difference.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/lyrics-core.ts</span>
+                <pre><code><span class="code-line"><span class="code-comment">/** Index after "Next": wraps from the last line back to the first. */</span></span>
+<span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">nextIndex</span>(idx: <span class="code-keyword">number</span>, length: <span class="code-keyword">number</span>): <span class="code-keyword">number</span> {</span>
+<span class="code-line">    <span class="code-keyword">if</span> (length <span class="code-operator">&lt;=</span> <span class="code-number">0</span>) <span class="code-keyword">return</span> <span class="code-number">0</span>;</span>
+<span class="code-line">    <span class="code-keyword">return</span> idx <span class="code-operator">&gt;=</span> length - <span class="code-number">1</span> ? <span class="code-number">0</span> : idx + <span class="code-number">1</span>;</span>
+<span class="code-line">}</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-comment">/** Index after "Previous": stops at the first line. */</span></span>
+<span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">prevIndex</span>(idx: <span class="code-keyword">number</span>): <span class="code-keyword">number</span> {</span>
+<span class="code-line">    <span class="code-keyword">return</span> idx <span class="code-operator">&gt;</span> <span class="code-number">0</span> ? idx - <span class="code-number">1</span> : <span class="code-number">0</span>;</span>
+<span class="code-line">}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Next loops around like a repeat sign in music.</p>
+                  <p class="tl">Given the current line and how many lines there are...</p>
+                  <p class="tl">...if there are no lines at all, just say 0.</p>
+                  <p class="tl">On the last line? Go back to the top. Otherwise, one step forward.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Previous hits a wall instead of looping.</p>
+                  <p class="tl">Given the current line...</p>
+                  <p class="tl">...step back one, unless you are already at the top.</p>
+                  <p class="tl">&nbsp;</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout-info">
+              <div class="callout-icon">&#128270;</div>
+              <div class="callout-content">
+                <strong class="callout-title">Small rule, visible effect</strong>
+                <p>Because Next wraps, the Next button relabels itself "Restart" on the last line. That label comes from state too: the screen always tells the truth about what the next press will do.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The safety rail: clampIndex</h2>
+            <p>Whatever number arrives (from a slider, a saved session, a bug), <code>clampIndex</code> squeezes it into the valid range before it becomes the state. Think of it as the end stops on a slide rule.</p>
+
+            <div class="step-cards">
+              <div class="step-card">
+                <div class="step-num">1</div>
+                <div class="step-body"><strong>clampIndex(-3, 14) &rarr; 0</strong><p>Below the first line? Pinned to the first line.</p></div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">2</div>
+                <div class="step-body"><strong>clampIndex(99, 14) &rarr; 13</strong><p>Past the end? Pinned to the last line (the 14th, which is idx 13).</p></div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">3</div>
+                <div class="step-body"><strong>clampIndex(4.7, 14) &rarr; 4</strong><p>Not a whole number? The fraction is chopped off.</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module2">
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Right. The counter, the progress bar and the labels are derived from idx, so you only store the new setting and let render() work out the rest."
+                   data-explanation-wrong="Not quite. The pattern here is: keep state tiny and derive everything else. The progress percentage is calculated from idx each time, so it should not be stored.">
+                <h3 class="quiz-question">You are adding a font-size setting that must survive reloads. What belongs in TrainerState?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The font size and the current progress percentage</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Only the font size; the progress is always worked out from idx</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Nothing; the font size should live directly in the CSS file</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Yes. nextIndex wraps from the last line to 0, which is why the button reads Restart there. With auto-advance on, it simply loops."
+                   data-explanation-wrong="Look at nextIndex again: when idx is the last line, it returns 0. The song starts over rather than stopping.">
+                <h3 class="quiz-question">Auto-advance is running on a 14-line poem and reaches line 14. What happens on the next tick?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It jumps back to line 1 and keeps going</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It stays on line 14 and stops the timer</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It shows an empty line 15</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Exactly. Changing nextIndex in the pure core changes behaviour everywhere (button, key, swipe, timer) at once, and its unit tests tell you what you affected."
+                   data-explanation-wrong="Think about how many places move forward: the button, the arrow key, the swipe and the timer. They all go through nextIndex, so that single function is the one place to change.">
+                <h3 class="quiz-question">A user wants Next to stop at the last line instead of looping. Where is the one-place fix?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>In the click handler of the Next button</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>In the keyboard handler and the swipe handler separately</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>In nextIndex, then update its tests</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+    <section class="module" id="module-3" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">03</span>
+          <h1 class="module-title">Calling the Cue: Rendering One Line</h1>
+          <p class="module-subtitle">One function turns the two numbers into everything you see and hear</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a stage manager's "Go"</h2>
+            <p>In a theatre, the stage manager calls one cue and several departments act at once: lights change, the curtain moves, the announcer speaks. In the trainer, <code>render()</code> is that cue. Every change of line ends by calling it, and it updates every part of the screen from the state.</p>
+
+            <div class="icon-rows">
+              <div class="icon-row">
+                <div class="icon-circle" style="background: var(--color-actor-1)">&#127908;</div>
+                <div><strong>The lyric box</strong><p>Shows the current line, sliding in from the direction you moved</p></div>
+              </div>
+              <div class="icon-row">
+                <div class="icon-circle" style="background: var(--color-actor-2)">&#9644;</div>
+                <div><strong>Counter and progress bar</strong><p>"Line 3 / 14" and a bar filled to 21%</p></div>
+              </div>
+              <div class="icon-row">
+                <div class="icon-circle" style="background: var(--color-actor-3)">&#128266;</div>
+                <div><strong>The hidden announcer</strong><p>Reads "Line 3 of 14: ..." aloud for screen-reader users</p></div>
+              </div>
+              <div class="icon-row">
+                <div class="icon-circle" style="background: var(--color-actor-4)">&#128190;</div>
+                <div><strong>The save</strong><p>Writes the state to storage so a reload lands in the same place (module 5)</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Painting the screen</h2>
+            <p>A slice from the middle of <code>render()</code> in <code>src/script.ts</code>. Notice it never asks "what changed?". It simply rewrites every visible value from the state. That is what makes it safe to call from anywhere.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line">    els.box.textContent = line;</span>
+<span class="code-line">    els.counter.textContent = <span class="code-string">`Line ${state.idx+1} / ${total}`</span>;</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-keyword">const</span> pct = <span class="code-function">progressPercent</span>(state.idx, total);</span>
+<span class="code-line">    els.progressFill.style.width = <span class="code-string">`${pct}%`</span>;</span>
+<span class="code-line">    els.progress.<span class="code-function">setAttribute</span>(<span class="code-string">'aria-valuenow'</span>, <span class="code-function">String</span>(pct));</span>
+<span class="code-line">    els.progress.<span class="code-function">setAttribute</span>(<span class="code-string">'aria-valuetext'</span>, <span class="code-string">`${pct}% (${positionText(state.idx, total)})`</span>);</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Put the current line's words in the big lyric box.</p>
+                  <p class="tl">Write "Line 3 / 14". The +1 turns the computer's count-from-zero into a human's count-from-one.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Work out how far through the song we are, as a percentage.</p>
+                  <p class="tl">Stretch the coloured bar to that width.</p>
+                  <p class="tl">Tell assistive technology the number...</p>
+                  <p class="tl">...and a spoken-friendly version, like "21% (Line 3 of 14)".</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout-accent">
+              <div class="callout-icon">&#128161;</div>
+              <div class="callout-content">
+                <strong class="callout-title">State in, screen out</strong>
+                <p>"The view is a function of the state" is the idea behind React, Vue and Svelte. This app does it by hand in 30 lines. Ask an AI to "update the state, then call render()" rather than poking individual elements, and bugs where the screen and data disagree disappear.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The slide, and when to skip it</h2>
+            <p>Each new line slides in from the side you moved towards. Some people get motion sickness from animation, and their operating system can say so through a <span class="term" data-definition="A media query lets code or CSS ask the browser about the device or the user's settings, such as screen width, dark mode, or 'prefers reduced motion'.">media query</span> called <span class="term" data-definition="prefers-reduced-motion is an accessibility setting in macOS, Windows, iOS and Android. When it is on, well-behaved sites turn off decorative animation.">prefers-reduced-motion</span>.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line"><span class="code-comment">/** Restart the slide/fade animation on the lyrics box (skipped for reduced motion). */</span></span>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">animateLine</span>(direction: Direction){</span>
+<span class="code-line">    <span class="code-keyword">const</span> box = els.box;</span>
+<span class="code-line">    box.classList.<span class="code-function">remove</span>(<span class="code-string">'line-enter-forward'</span>, <span class="code-string">'line-enter-backward'</span>);</span>
+<span class="code-line">    <span class="code-keyword">if</span> (direction === <span class="code-string">'none'</span> || <span class="code-function">prefersReducedMotion</span>()) <span class="code-keyword">return</span>;</span>
+<span class="code-line">    <span class="code-keyword">void</span> box.offsetWidth; <span class="code-comment">// force reflow so the same animation can replay</span></span>
+<span class="code-line">    box.classList.<span class="code-function">add</span>(<span class="code-string">`line-enter-${direction}`</span>);</span>
+<span class="code-line">}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">What this does, in one sentence.</p>
+                  <p class="tl">Given a direction (forward, backward or none)...</p>
+                  <p class="tl">...grab the lyric box.</p>
+                  <p class="tl">Take off any slide that is still attached from last time.</p>
+                  <p class="tl">If we did not really move, or the user asked for less motion, stop here: the text just appears.</p>
+                  <p class="tl">Make the browser measure the box. This odd trick lets the same animation play twice in a row.</p>
+                  <p class="tl">Attach the slide class; the CSS does the actual 220ms movement.</p>
+                  <p class="tl">&nbsp;</p>
+                </div>
+              </div>
+            </div>
+            <p>The <span class="term" data-definition="CSS is the styling language of the web: colours, sizes, layout and animation. A CSS class is a named bundle of styles you can switch on and off from JavaScript.">CSS</span> in <code>public/style.css</code> has a second, independent guard: under reduced motion the animation is set to <code>none</code>. Belt and braces.</p>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module3">
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Yes. If a handler changes idx but never calls render(), the state is right but the screen is stale. Every path should go through goTo(), which ends in render()."
+                   data-explanation-wrong="Think about the rule from this module: the screen only updates when render() runs. The most likely cause is a code path that changed state.idx without calling render().">
+                <h3 class="quiz-question">After a new feature, the lyric changes but the counter still says the old line number. Where do you look first?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The progressPercent maths in lyrics-core.ts</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The new code path: it probably updates the box directly instead of setting state and calling render()</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The CSS for the counter</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Correct. The animation is decoration; the content still has to change. Reduced motion only removes the slide, never the update."
+                   data-explanation-wrong="Not quite. Reduced motion is about removing movement, not information. The early return in animateLine skips the slide, while render() still puts the new text in the box.">
+                <h3 class="quiz-question">A user with reduced motion switched on presses Next. What do they see?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The new line appears instantly, with no slide</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Nothing, because animations are how lines change</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>A slower, gentler slide</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Right. Put the rule in one place (render) so every route to a new line gets it, and keep the flashing effect behind the reduced-motion check."
+                   data-explanation-wrong="Every way of changing line ends in render(), so that is the single place to add behaviour that should happen on every line change. And any new motion should respect prefers-reduced-motion.">
+                <h3 class="quiz-question">You want the progress bar to flash when you reach the final line. What instruction do you give the AI?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>"Add a flash in the Next button's click handler"</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>"Add a flash in the End key handler"</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>"In render(), when isLast is true, add a flash class, and skip it under prefers-reduced-motion"</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+    <section class="module" id="module-4" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">04</span>
+          <h1 class="module-title">Every Door Leads to goTo</h1>
+          <p class="module-subtitle">Buttons, arrow keys, swipes and a slider, all funnelled into one path</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: call buttons in a lift</h2>
+            <p>A lift has call buttons on every floor, inside the car, even a key switch for the caretaker. They all drive <strong>the same motor</strong>. The trainer works the same way: many ways in, one way to actually move.</p>
+
+            <div class="flow-steps">
+              <div class="flow-step"><div class="flow-step-num">&#8592;</div><p>Arrow keys, Home, End</p></div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step"><div class="flow-step-num">&#9757;</div><p>Swipe on the lyric</p></div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step"><div class="flow-step-num">&#9654;</div><p>Buttons, slider, timer</p></div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step"><div class="flow-step-num">&#9881;</div><p>advance() / back() &rarr; goTo() &rarr; render()</p></div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Listen in: one press of the right arrow</h2>
+            <p>Here is what happens between the parts of <code>script.ts</code> when you press &rarr; on your keyboard. Each "person" is a real function or <span class="term" data-definition="An event is a signal the browser sends when something happens: a key press, a tap, a click. Code 'listens' for events and reacts.">event</span>.</p>
+
+            <div class="chat-window" id="chat-m4">
+              <div class="chat-messages">
+                <div class="chat-message" data-msg="0" data-sender="browser" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-2)">B</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-2)">Browser</span>
+                    <p>Keydown! Key is "ArrowRight". Anyone listening on the document?</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="1" data-sender="keydown" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-1)">K</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-1)">keydown handler</span>
+                    <p>Me. First question: was focus on a slider or text box? If so it is theirs, not mine.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="2" data-sender="isFormControl" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-3)">F</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-3)">isFormControl</span>
+                    <p>Nope, focus is on the page body. Also no Ctrl, Alt or Cmd held down. Go ahead.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="3" data-sender="keydown" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-1)">K</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-1)">keydown handler</span>
+                    <p>ArrowRight means forward. advance(), you are up.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="4" data-sender="advance" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-4)">A</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-4)">advance</span>
+                    <p>nextIndex says line 3 comes after line 2. goTo(2), please.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="5" data-sender="goTo" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-5)">G</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-5)">goTo</span>
+                    <p>Clamped, it is safe. state.idx = 2. Calling render().</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="6" data-sender="render" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-accent)">R</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-accent)">render</span>
+                    <p>New line slides in from the right, bar goes to 21%, announcer reads it out, state saved. Done.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chat-typing" style="display:none">
+                <div class="chat-avatar" id="chat-m4-typing-avatar">?</div>
+                <div class="chat-typing-dots">
+                  <span class="typing-dot"></span>
+                  <span class="typing-dot"></span>
+                  <span class="typing-dot"></span>
+                </div>
+              </div>
+
+              <div class="chat-controls">
+                <button class="btn chat-next-btn">Next Message</button>
+                <button class="btn chat-all-btn">Play All</button>
+                <button class="btn chat-reset-btn">Replay</button>
+                <span class="chat-progress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The keyboard switchboard</h2>
+            <p>From <code>setupUI()</code> in <code>src/script.ts</code>. An <span class="term" data-definition="An event listener is a function you register to be called whenever a specific event happens, like 'run this whenever a key is pressed'.">event listener</span> on the whole page decides what each key means.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line">    document.<span class="code-function">addEventListener</span>(<span class="code-string">'keydown'</span>, e<span class="code-operator">=&gt;</span>{</span>
+<span class="code-line">        <span class="code-comment">// Let sliders handle their own arrow/Home/End keys (avoids double-stepping)</span></span>
+<span class="code-line">        <span class="code-keyword">if</span> (<span class="code-function">isFormControl</span>(e.target) || e.altKey || e.ctrlKey || e.metaKey) <span class="code-keyword">return</span>;</span>
+<span class="code-line">        <span class="code-keyword">if</span>(e.key===<span class="code-string">'ArrowLeft'</span>) <span class="code-function">back</span>();</span>
+<span class="code-line">        <span class="code-keyword">else if</span>(e.key===<span class="code-string">'ArrowRight'</span>) <span class="code-function">advance</span>();</span>
+<span class="code-line">        <span class="code-keyword">else if</span>(e.key===<span class="code-string">' '</span>){ e.<span class="code-function">preventDefault</span>(); <span class="code-function">toggleTimer</span>(); }</span>
+<span class="code-line">        <span class="code-keyword">else if</span>(e.key===<span class="code-string">'Home'</span>){ e.<span class="code-function">preventDefault</span>(); <span class="code-function">goTo</span>(<span class="code-number">0</span>); }</span>
+<span class="code-line">        <span class="code-keyword">else if</span>(e.key===<span class="code-string">'End'</span>){ e.<span class="code-function">preventDefault</span>(); <span class="code-function">goTo</span>(lyrics.length-<span class="code-number">1</span>); }</span>
+<span class="code-line">    });</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Whenever any key goes down anywhere on the page, run this:</p>
+                  <p class="tl">(why the next line exists)</p>
+                  <p class="tl">If a slider or text box has focus, or a shortcut key is held, ignore it. That key is not for us.</p>
+                  <p class="tl">Left arrow: one line back.</p>
+                  <p class="tl">Right arrow: one line forward.</p>
+                  <p class="tl">Space: stop the page scrolling, then start or pause auto-advance.</p>
+                  <p class="tl">Home: stop the page jumping to the top, then go to the first line.</p>
+                  <p class="tl">End: same idea, last line.</p>
+                  <p class="tl">End of the listener.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout-warning">
+              <div class="callout-icon">&#9888;</div>
+              <div class="callout-content">
+                <strong class="callout-title">The double-step bug this fixed</strong>
+                <p>Before the isFormControl check, pressing &rarr; while the seek slider had focus moved the slider one notch <em>and</em> ran advance(): two lines per press. <code>preventDefault()</code> is the browser's "I have got this, do not do your usual thing".</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Swipes: measuring the finger</h2>
+            <p>On a phone, a <span class="term" data-definition="A touch event is the phone equivalent of a mouse click. touchstart fires when a finger lands, touchend when it lifts, each with the finger's position.">touch event</span> records where the finger landed and where it lifted. The difference decides the direction.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line"><span class="code-keyword">function</span> <span class="code-function">handleSwipe</span>(){</span>
+<span class="code-line">    <span class="code-keyword">const</span> distance = touchEndX - touchStartX;</span>
+<span class="code-line">    <span class="code-keyword">if</span> (Math.<span class="code-function">abs</span>(distance) &lt; MIN_SWIPE_DISTANCE) <span class="code-keyword">return</span>;</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-keyword">if</span> (distance &gt; <span class="code-number">0</span>) {</span>
+<span class="code-line">        <span class="code-function">back</span>();      <span class="code-comment">// Swipe right - previous</span></span>
+<span class="code-line">    } <span class="code-keyword">else</span> {</span>
+<span class="code-line">        <span class="code-function">advance</span>();   <span class="code-comment">// Swipe left - next</span></span>
+<span class="code-line">    }</span>
+<span class="code-line">}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">When the finger lifts, decide what the gesture meant:</p>
+                  <p class="tl">How far did it travel sideways? Positive means rightwards.</p>
+                  <p class="tl">Less than 50 pixels either way? Probably a tap or a wobble; do nothing.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Moved right, like turning a page back...</p>
+                  <p class="tl">...go to the previous line.</p>
+                  <p class="tl">Otherwise it moved left...</p>
+                  <p class="tl">...so go to the next line.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">&nbsp;</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module4">
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Right. Add one more branch to the existing keydown listener and call the same advance() everyone else uses. No new movement logic needed."
+                   data-explanation-wrong="Not quite. The pattern is 'many doors, one motor'. A new key is just a new door: one more else-if in the keydown listener that calls advance().">
+                <h3 class="quiz-question">You want the "J" key to also go to the next line. What is the smallest correct change?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Write a new function that increments state.idx and updates the lyric box</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Add <code>else if(e.key==='j') advance();</code> to the keydown listener</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Add a second keydown listener just for J</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Exactly. MIN_SWIPE_DISTANCE is 50 pixels; short, gentle swipes fall below it and are ignored on purpose. Lowering it is a one-number change."
+                   data-explanation-wrong="Look at the early return in handleSwipe: anything shorter than MIN_SWIPE_DISTANCE (50 px) is treated as a tap. Small hands on a big phone may not clear it.">
+                <h3 class="quiz-question">A tester says short swipes on their phone "do nothing", but long swipes work. What is the likely cause?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The service worker is blocking touch events</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>render() is too slow</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Their swipes are shorter than the 50px threshold</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Yes. Typing a space into a text box would trigger play/pause without the guard. isFormControl already covers textarea, so the note field is safe."
+                   data-explanation-wrong="Think about what would happen when someone types a space into a text box. Without the isFormControl guard, every space would toggle auto-advance. The guard already covers input and textarea.">
+                <h3 class="quiz-question">You add a notes text box under the lyrics. Why does typing a space in it not start auto-advance?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>isFormControl sees the key came from a textarea, so the listener returns early</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Browsers never send key events from text boxes</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>preventDefault() blocks spaces everywhere</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module4')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module4')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+    <section class="module" id="module-5" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">05</span>
+          <h1 class="module-title">A Note for Tomorrow: localStorage</h1>
+          <p class="module-subtitle">How the app remembers your line, your speed and your song across reloads</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a note in your coat pocket</h2>
+            <p>Leave a note in your coat pocket tonight ("stopped at line 7, speed 3s") and tomorrow's you picks up exactly there. <span class="term" data-definition="localStorage is a small notebook the browser keeps for each website. It stores text under names (keys) and survives closing the tab, but it is private to that browser on that device.">localStorage</span> is that pocket. It only holds text, so the state is written as <span class="term" data-definition="JSON (JavaScript Object Notation) is a text format for structured data, like {&quot;idx&quot;:6,&quot;delay&quot;:3000}. JSON.stringify turns data into that text; JSON.parse turns it back.">JSON</span>.</p>
+
+            <div class="badge-list">
+              <div class="badge-item"><code class="badge-code">lyricsTrainerState</code><span class="badge-desc">Your line and speed: {"idx":6,"delay":3000}</span></div>
+              <div class="badge-item"><code class="badge-code">lyricsTrainerTheme</code><span class="badge-desc">"dark" or "light", if you picked one</span></div>
+              <div class="badge-item"><code class="badge-code">lyricsPath</code><span class="badge-desc">Which bundled file you had open, e.g. lyrics/casey_at_the_bat.txt</span></div>
+              <div class="badge-item"><code class="badge-code">customLyrics</code><span class="badge-desc">The full list of lines from a file you uploaded</span></div>
+              <div class="badge-item"><code class="badge-code">lyricsSource</code><span class="badge-desc">"custom" or "playlist": where the current lyrics came from</span></div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Reading and writing the note</h2>
+            <p>Two tiny functions in <code>src/script.ts</code>. Saving happens at the end of every <code>render()</code>, so the note is never more than one line out of date.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line"><span class="code-comment">/* ---------- load / persist ---------- */</span></span>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">loadState</span>(): TrainerState {</span>
+<span class="code-line">    <span class="code-keyword">try</span> { <span class="code-keyword">return</span> <span class="code-function">parseState</span>(localStorage.<span class="code-function">getItem</span>(STORAGE_KEY)); }</span>
+<span class="code-line">    <span class="code-keyword">catch</span> { <span class="code-keyword">return</span> { ...DEFAULT_STATE }; }</span>
+<span class="code-line">}</span>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">saveState</span>(s: TrainerState){ localStorage.<span class="code-function">setItem</span>(STORAGE_KEY, JSON.<span class="code-function">stringify</span>(s)); }</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">This section is about remembering.</p>
+                  <p class="tl">To read the note:</p>
+                  <p class="tl">take the text stored under "lyricsTrainerState" and let parseState check it carefully...</p>
+                  <p class="tl">...and if the browser refuses access entirely (some private modes do), just start fresh.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">To write the note: turn the state into JSON text and store it under the same name.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Never trust a note you did not just write</h2>
+            <p>The stored text could be from an old version, edited by hand in <span class="term" data-definition="Developer tools (DevTools) are the inspection panels built into every browser. The Application tab lets you see and edit localStorage directly.">DevTools</span>, or simply corrupt. <code>parseState</code> in <code>src/lyrics-core.ts</code> checks each field on its own and repairs what it can.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/lyrics-core.ts</span>
+                <pre><code><span class="code-line">    <span class="code-keyword">const</span> { idx, delay } = parsed <span class="code-keyword">as</span> <span class="code-function">Partial</span>&lt;<span class="code-function">Record</span>&lt;<span class="code-keyword">keyof</span> TrainerState, <span class="code-keyword">unknown</span>&gt;&gt;;</span>
+<span class="code-line">    <span class="code-keyword">return</span> {</span>
+<span class="code-line">        <span class="code-property">idx</span>: <span class="code-keyword">typeof</span> idx === <span class="code-string">'number'</span> &amp;&amp; Number.<span class="code-function">isFinite</span>(idx) &amp;&amp; idx &gt;= <span class="code-number">0</span></span>
+<span class="code-line">            ? Math.<span class="code-function">trunc</span>(idx) : DEFAULT_STATE.idx,</span>
+<span class="code-line">        <span class="code-property">delay</span>: <span class="code-keyword">typeof</span> delay === <span class="code-string">'number'</span> &amp;&amp; Number.<span class="code-function">isFinite</span>(delay)</span>
+<span class="code-line">            ? Math.<span class="code-function">min</span>(Math.<span class="code-function">max</span>(delay, MIN_DELAY), MAX_DELAY) : DEFAULT_STATE.delay,</span>
+<span class="code-line">    };</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Pull out the two fields, treating them as "unknown" until proven otherwise.</p>
+                  <p class="tl">Build a fresh, clean state:</p>
+                  <p class="tl">idx is kept only if it is a real, non-negative number...</p>
+                  <p class="tl">...with any fraction chopped off. Otherwise use 0.</p>
+                  <p class="tl">delay is kept only if it is a real number...</p>
+                  <p class="tl">...and is squeezed between 0.5s and 10s. Otherwise use 3s.</p>
+                  <p class="tl">Hand back the repaired state.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout-accent">
+              <div class="callout-icon">&#128161;</div>
+              <div class="callout-content">
+                <strong class="callout-title">Validate at the border</strong>
+                <p>Anything that crosses into your app (saved data, uploads, network replies) is untrusted input. Checking it once at the border means the rest of the code can assume it is clean. When you ask an AI to persist data, also ask it to "validate on load".</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module5">
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Right. idx 40 is a valid number, so parseState keeps it, and init() then runs clampIndex(40, 14) which pins it to the last line. Two layers, no crash."
+                   data-explanation-wrong="Walk it through: parseState only checks that idx is a real non-negative number, which 40 is. But init() passes it through clampIndex against the real lyrics length, so it lands on the last line.">
+                <h3 class="quiz-question">You were on line 41 of a long song, then switched to a 14-line sonnet, and the saved idx is still 40. What happens on reload?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The app crashes trying to show line 41</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It opens on the sonnet's last line, because clampIndex pins 40 to 13</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It shows a blank line</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Yes. localStorage belongs to one browser on one device. Syncing between devices needs a server or an account system, which this app deliberately does not have."
+                   data-explanation-wrong="Not quite. localStorage never leaves the device. Nothing in this app talks to a server except to download files, so there is nowhere for your position to be shared.">
+                <h3 class="quiz-question">A user practises on their laptop, then opens the app on their phone. Where does the phone start?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>At the same line, because the browser syncs localStorage</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>At the same line, because the service worker shares it</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Wherever the phone itself last was (or line 1), since storage is per device</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Exactly. Add the field to TrainerState and DEFAULT_STATE, validate it in parseState (with tests), and render/saveState carry it automatically."
+                   data-explanation-wrong="The existing pipeline already saves the whole state on every render. The work is to extend the shape and teach parseState to validate the new field, so bad saved values cannot break the app.">
+                <h3 class="quiz-question">You add a "font size" setting. What is the complete, safe way to persist it?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Add it to TrainerState and DEFAULT_STATE, and validate it in parseState with a test</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Call localStorage.setItem('fontSize', ...) from the button and read it back with no checks</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Store it in a cookie instead</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+    <section class="module" id="module-6" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">06</span>
+          <h1 class="module-title">Stocking the Hut: Offline with a Service Worker</h1>
+          <p class="module-subtitle">How the app keeps working on a train with no signal</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a mountain hut stocked before the storm</h2>
+            <p>Walkers stock a mountain hut in good weather, so when the pass closes there is still food on the shelves. A <span class="term" data-definition="A service worker is a small script the browser runs in the background, separate from the page. It sits between the page and the network and can answer requests itself, which is what makes offline mode possible.">service worker</span> does that for the app: on first visit it fills a <span class="term" data-definition="A cache is a stored copy of something you fetched before, kept so you can reuse it quickly or when the original is unavailable.">cache</span> with every file the app needs.</p>
+
+            <div class="step-cards">
+              <div class="step-card">
+                <div class="step-num">1</div>
+                <div class="step-body"><strong>Register</strong><p>index.html asks the browser to run <code>service-worker.js</code> in the background.</p></div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">2</div>
+                <div class="step-body"><strong>Install: stock the shelves</strong><p>Every file in the ASSETS list is downloaded into a cache named <code>lyrics-trainer-v2</code>.</p></div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">3</div>
+                <div class="step-body"><strong>Activate: clear out old stock</strong><p>Caches from older versions (v1 and so on) are deleted.</p></div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">4</div>
+                <div class="step-body"><strong>Fetch: answer every request</strong><p>From now on the worker decides: go to the network, or serve from the shelves?</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The shopping list</h2>
+            <p>The install step is all-or-nothing. If a single file on this list does not exist, the whole install fails and offline mode quietly never happens. That is exactly the bug the original exercise had.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">public/service-worker.js</span>
+                <pre><code><span class="code-line"><span class="code-comment">// install: cache app shell</span></span>
+<span class="code-line"><span class="code-comment">/** @param {ExtendableEvent} e */</span></span>
+<span class="code-line">self.<span class="code-function">addEventListener</span>(<span class="code-string">'install'</span>, (e) <span class="code-operator">=&gt;</span> {</span>
+<span class="code-line">    e.<span class="code-function">waitUntil</span>(</span>
+<span class="code-line">        caches.<span class="code-function">open</span>(CACHE).<span class="code-function">then</span>((c) <span class="code-operator">=&gt;</span> c.<span class="code-function">addAll</span>(ASSETS))</span>
+<span class="code-line">    );</span>
+<span class="code-line">});</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">This part runs once, when a new version of the worker is installed.</p>
+                  <p class="tl">(a type hint for editors)</p>
+                  <p class="tl">When the browser says "you are being installed"...</p>
+                  <p class="tl">...ask it to wait until we are finished...</p>
+                  <p class="tl">...open the cache for this version and download every file on the ASSETS list into it.</p>
+                  <p class="tl">If any single download fails, the install fails.</p>
+                  <p class="tl">&nbsp;</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Fresh when possible, stored when not</h2>
+            <p>Lyrics files change, so for them the worker tries the network first and keeps a copy. The app shell (HTML, CSS, JS) rarely changes, so it comes straight from the shelves. This mix is called a <span class="term" data-definition="A caching strategy is the rule for choosing between network and cache. 'Network-first' tries the internet and falls back to the cache; 'cache-first' uses the stored copy if there is one.">caching strategy</span>.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">public/service-worker.js</span>
+                <pre><code><span class="code-line">            <span class="code-keyword">if</span> (<span class="code-function">isFreshContent</span>(url)) {</span>
+<span class="code-line">                <span class="code-keyword">try</span> {</span>
+<span class="code-line">                    <span class="code-keyword">const</span> net = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(req);</span>
+<span class="code-line">                    <span class="code-keyword">if</span> (net.ok) {</span>
+<span class="code-line">                        <span class="code-keyword">const</span> cache = <span class="code-keyword">await</span> caches.<span class="code-function">open</span>(CACHE);</span>
+<span class="code-line">                        <span class="code-comment">// Store without the ?v= cache-buster so offline lookups match</span></span>
+<span class="code-line">                        <span class="code-keyword">await</span> cache.<span class="code-function">put</span>(url.origin + url.pathname, net.<span class="code-function">clone</span>());</span>
+<span class="code-line">                    }</span>
+<span class="code-line">                    <span class="code-keyword">return</span> net;</span>
+<span class="code-line">                } <span class="code-keyword">catch</span> { <span class="code-comment">/* offline: fall through to cache */</span> }</span>
+<span class="code-line">            }</span>
+<span class="code-line">            <span class="code-comment">// The app adds ?v=&lt;timestamp&gt; to lyrics requests, so ignore the query string</span></span>
+<span class="code-line">            <span class="code-keyword">const</span> cached = <span class="code-keyword">await</span> caches.<span class="code-function">match</span>(req, { <span class="code-property">ignoreSearch</span>: <span class="code-keyword">true</span> });</span>
+<span class="code-line">            <span class="code-keyword">return</span> cached || <span class="code-function">fetch</span>(req);</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Is this a lyrics file or the playlist? Then:</p>
+                  <p class="tl">try the internet first...</p>
+                  <p class="tl">...and wait for the real file.</p>
+                  <p class="tl">If it arrived fine...</p>
+                  <p class="tl">...open the shelves...</p>
+                  <p class="tl">(why the next line strips the address)</p>
+                  <p class="tl">...and store a copy under the plain address, without the timestamp.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Give the page the fresh file.</p>
+                  <p class="tl">No signal? Do not panic; carry on to the shelves below.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">(why the next line ignores the ?v= part)</p>
+                  <p class="tl">Look for a stored copy, ignoring the ?v=... part (remember the cache-buster from module 1).</p>
+                  <p class="tl">Found one? Serve it. If not, try the network as a last resort.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Follow a request with no signal</h2>
+            <p>You are on a train, open the app, and it asks for Sonnet 18. Step through what the worker does.</p>
+
+            <div class="flow-animation" data-steps='[
+              {"highlight":"flow-m6-page","label":"The page asks for lyrics/sonnet_18.txt?v=1759... with a fresh timestamp"},
+              {"highlight":"flow-m6-sw","label":"The service worker intercepts the request before it leaves the device","packet":true,"from":"m6-page","to":"m6-sw"},
+              {"highlight":"flow-m6-net","label":"It is a .txt file, so it tries the network first","packet":true,"from":"m6-sw","to":"m6-net"},
+              {"highlight":"flow-m6-net","label":"No signal: the fetch throws an error, which is caught"},
+              {"highlight":"flow-m6-cache","label":"Fall back to the cache, ignoring the ?v= part of the address","packet":true,"from":"m6-sw","to":"m6-cache"},
+              {"highlight":"flow-m6-cache","label":"Found: the copy stored during install (or on a previous online visit)"},
+              {"highlight":"flow-m6-page","label":"The page gets the text, cuts it into lines and renders line 1 as usual","packet":true,"from":"m6-cache","to":"m6-page"}
+            ]'>
+              <div class="flow-actors">
+                <div class="flow-actor" id="flow-m6-page">
+                  <div class="flow-actor-icon">P</div>
+                  <span>Page</span>
+                </div>
+                <div class="flow-actor" id="flow-m6-sw">
+                  <div class="flow-actor-icon">W</div>
+                  <span>Service worker</span>
+                </div>
+                <div class="flow-actor" id="flow-m6-net">
+                  <div class="flow-actor-icon">N</div>
+                  <span>Network</span>
+                </div>
+                <div class="flow-actor" id="flow-m6-cache">
+                  <div class="flow-actor-icon">C</div>
+                  <span>Cache</span>
+                </div>
+              </div>
+              <div class="flow-packet"></div>
+              <div class="flow-step-label">Click "Next Step" to begin</div>
+              <div class="flow-controls">
+                <button class="btn flow-next-btn">Next Step</button>
+                <button class="btn flow-reset-btn">Restart</button>
+                <span class="flow-progress"></span>
+              </div>
+            </div>
+
+            <div class="callout callout-info">
+              <div class="callout-icon">&#128270;</div>
+              <div class="callout-content">
+                <strong class="callout-title">The whole journey, in one sentence</strong>
+                <p>A text file is fetched (through the worker), cut into lines, reduced to two numbers of state, rendered, driven by keys and swipes, and remembered in localStorage. You now know every stage.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module6">
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Right. A new public file must go on the ASSETS list, and bumping CACHE makes browsers install the new worker and drop the old cache. The project's CLAUDE.md says exactly this."
+                   data-explanation-wrong="Remember the shopping list. Offline mode only has what ASSETS lists, and returning visitors only re-install when the worker file changes, which is what bumping the CACHE name does.">
+                <h3 class="quiz-question">You add a new bundled song, <code>public/lyrics/yesterday.txt</code>. What must change for it to work offline for returning users?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Nothing; the service worker finds new files automatically</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Only lyrics-list.json</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Add it to lyrics-list.json and ASSETS, and bump CACHE to v3</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Yes. cache.addAll is all-or-nothing: one 404 and the whole install is rejected, so nothing is cached and offline mode silently never starts."
+                   data-explanation-wrong="Think about how install works: cache.addAll either stores every file or fails as a whole. A single missing file means no cache at all, with no visible error for the user.">
+                <h3 class="quiz-question">Someone typos a filename in ASSETS. Online, the app works perfectly. What breaks?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Offline mode: the install fails, so nothing at all is cached</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Just that one file is missing offline; the rest works</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The page shows an error banner immediately</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Exactly. Lyrics are network-first, so online you always get the newest version. Shell files like style.css are cache-first and only update when a new worker version installs."
+                   data-explanation-wrong="Compare the two strategies. Lyrics (.txt) are network-first, so a fix shows up on the next online load. style.css is served cache-first until the worker version changes.">
+                <h3 class="quiz-question">You fix a typo in a lyrics file and also change a colour in style.css, then deploy. A returning user reloads online. What do they see?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Both changes immediately</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The lyric fix, but the old colour until CACHE is bumped</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Neither change until they clear their browser data</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module6')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module6')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>

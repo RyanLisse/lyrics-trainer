@@ -1,0 +1,177 @@
+    <section class="module" id="module-2" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">02</span>
+          <h1 class="module-title">Two Numbers Run the Show</h1>
+          <p class="module-subtitle">The app's entire memory of "where am I" fits on a sticky label</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a music stand with a clip and a metronome</h2>
+            <p>A musician practising needs only two facts: <strong>which bar the clip is on</strong> and <strong>how fast the metronome ticks</strong>. Everything else can be worked out from the sheet music. The trainer's <span class="term" data-definition="State is the small set of facts an app keeps in memory to know what is going on right now. Change the state, redraw the screen, and the app is up to date.">state</span> is exactly that pair.</p>
+
+            <div class="pattern-cards">
+              <div class="pattern-card" style="border-top: 3px solid var(--color-actor-1)">
+                <div class="pattern-icon" style="background: var(--color-actor-1)">#</div>
+                <h4 class="pattern-title">idx</h4>
+                <p class="pattern-desc">Which line you are on, counting from 0. Line 1 on screen is idx 0.</p>
+              </div>
+              <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2)">
+                <div class="pattern-icon" style="background: var(--color-actor-2)">&#9201;</div>
+                <h4 class="pattern-title">delay</h4>
+                <p class="pattern-desc">How many milliseconds auto-advance waits. 3000 means 3 seconds.</p>
+              </div>
+              <div class="pattern-card" style="border-top: 3px solid var(--color-actor-3)">
+                <div class="pattern-icon" style="background: var(--color-actor-3)">&#8721;</div>
+                <h4 class="pattern-title">Everything else</h4>
+                <p class="pattern-desc">Counter text, progress %, button labels: all derived from idx and the lyrics list.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The shape of the state</h2>
+            <p>An <span class="term" data-definition="In TypeScript an interface is a named shape: it lists the fields an object must have and their types. It is a contract, not code that runs.">interface</span> declares the shape, and a <span class="term" data-definition="A constant is a named value that never changes after it is set, like a label on a fixed dial setting.">constant</span> gives the starting values.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/lyrics-core.ts</span>
+                <pre><code><span class="code-line"><span class="code-keyword">export interface</span> <span class="code-function">TrainerState</span> {</span>
+<span class="code-line">    <span class="code-property">idx</span>:   <span class="code-keyword">number</span>;</span>
+<span class="code-line">    <span class="code-property">delay</span>: <span class="code-keyword">number</span>;   <span class="code-comment">// milliseconds</span></span>
+<span class="code-line">}</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">export const</span> DEFAULT_STATE: <span class="code-function">Readonly</span>&lt;TrainerState&gt; = { <span class="code-property">idx</span>: <span class="code-number">0</span>, <span class="code-property">delay</span>: <span class="code-number">3000</span> };</span>
+<span class="code-line"><span class="code-keyword">export const</span> MIN_DELAY = <span class="code-number">500</span>;</span>
+<span class="code-line"><span class="code-keyword">export const</span> MAX_DELAY = <span class="code-number">10000</span>;</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Here is the shape every trainer state must have:</p>
+                  <p class="tl">a line number...</p>
+                  <p class="tl">...and a delay, measured in thousandths of a second.</p>
+                  <p class="tl">That is the whole shape.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Start on the first line with a 3-second delay, and nobody may edit this default.</p>
+                  <p class="tl">Auto-advance can never be faster than half a second...</p>
+                  <p class="tl">...or slower than ten seconds.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Moving the clip: next and previous</h2>
+            <p>Next and Previous do not behave symmetrically, and that is a deliberate choice. Read the two small <span class="term" data-definition="A function is a named, reusable set of instructions. You give it inputs (arguments) and it gives back a result.">functions</span> and spot the difference.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/lyrics-core.ts</span>
+                <pre><code><span class="code-line"><span class="code-comment">/** Index after "Next": wraps from the last line back to the first. */</span></span>
+<span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">nextIndex</span>(idx: <span class="code-keyword">number</span>, length: <span class="code-keyword">number</span>): <span class="code-keyword">number</span> {</span>
+<span class="code-line">    <span class="code-keyword">if</span> (length <span class="code-operator">&lt;=</span> <span class="code-number">0</span>) <span class="code-keyword">return</span> <span class="code-number">0</span>;</span>
+<span class="code-line">    <span class="code-keyword">return</span> idx <span class="code-operator">&gt;=</span> length - <span class="code-number">1</span> ? <span class="code-number">0</span> : idx + <span class="code-number">1</span>;</span>
+<span class="code-line">}</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-comment">/** Index after "Previous": stops at the first line. */</span></span>
+<span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">prevIndex</span>(idx: <span class="code-keyword">number</span>): <span class="code-keyword">number</span> {</span>
+<span class="code-line">    <span class="code-keyword">return</span> idx <span class="code-operator">&gt;</span> <span class="code-number">0</span> ? idx - <span class="code-number">1</span> : <span class="code-number">0</span>;</span>
+<span class="code-line">}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Next loops around like a repeat sign in music.</p>
+                  <p class="tl">Given the current line and how many lines there are...</p>
+                  <p class="tl">...if there are no lines at all, just say 0.</p>
+                  <p class="tl">On the last line? Go back to the top. Otherwise, one step forward.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Previous hits a wall instead of looping.</p>
+                  <p class="tl">Given the current line...</p>
+                  <p class="tl">...step back one, unless you are already at the top.</p>
+                  <p class="tl">&nbsp;</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout-info">
+              <div class="callout-icon">&#128270;</div>
+              <div class="callout-content">
+                <strong class="callout-title">Small rule, visible effect</strong>
+                <p>Because Next wraps, the Next button relabels itself "Restart" on the last line. That label comes from state too: the screen always tells the truth about what the next press will do.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The safety rail: clampIndex</h2>
+            <p>Whatever number arrives (from a slider, a saved session, a bug), <code>clampIndex</code> squeezes it into the valid range before it becomes the state. Think of it as the end stops on a slide rule.</p>
+
+            <div class="step-cards">
+              <div class="step-card">
+                <div class="step-num">1</div>
+                <div class="step-body"><strong>clampIndex(-3, 14) &rarr; 0</strong><p>Below the first line? Pinned to the first line.</p></div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">2</div>
+                <div class="step-body"><strong>clampIndex(99, 14) &rarr; 13</strong><p>Past the end? Pinned to the last line (the 14th, which is idx 13).</p></div>
+              </div>
+              <div class="step-card">
+                <div class="step-num">3</div>
+                <div class="step-body"><strong>clampIndex(4.7, 14) &rarr; 4</strong><p>Not a whole number? The fraction is chopped off.</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module2">
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Right. The counter, the progress bar and the labels are derived from idx, so you only store the new setting and let render() work out the rest."
+                   data-explanation-wrong="Not quite. The pattern here is: keep state tiny and derive everything else. The progress percentage is calculated from idx each time, so it should not be stored.">
+                <h3 class="quiz-question">You are adding a font-size setting that must survive reloads. What belongs in TrainerState?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The font size and the current progress percentage</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Only the font size; the progress is always worked out from idx</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Nothing; the font size should live directly in the CSS file</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Yes. nextIndex wraps from the last line to 0, which is why the button reads Restart there. With auto-advance on, it simply loops."
+                   data-explanation-wrong="Look at nextIndex again: when idx is the last line, it returns 0. The song starts over rather than stopping.">
+                <h3 class="quiz-question">Auto-advance is running on a 14-line poem and reaches line 14. What happens on the next tick?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It jumps back to line 1 and keeps going</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It stays on line 14 and stops the timer</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>It shows an empty line 15</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Exactly. Changing nextIndex in the pure core changes behaviour everywhere (button, key, swipe, timer) at once, and its unit tests tell you what you affected."
+                   data-explanation-wrong="Think about how many places move forward: the button, the arrow key, the swipe and the timer. They all go through nextIndex, so that single function is the one place to change.">
+                <h3 class="quiz-question">A user wants Next to stop at the last line instead of looping. Where is the one-place fix?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>In the click handler of the Next button</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>In the keyboard handler and the swipe handler separately</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>In nextIndex, then update its tests</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>

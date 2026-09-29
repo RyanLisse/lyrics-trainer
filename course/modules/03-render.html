@@ -1,0 +1,153 @@
+    <section class="module" id="module-3" style="background: var(--color-bg-warm)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">03</span>
+          <h1 class="module-title">Calling the Cue: Rendering One Line</h1>
+          <p class="module-subtitle">One function turns the two numbers into everything you see and hear</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: a stage manager's "Go"</h2>
+            <p>In a theatre, the stage manager calls one cue and several departments act at once: lights change, the curtain moves, the announcer speaks. In the trainer, <code>render()</code> is that cue. Every change of line ends by calling it, and it updates every part of the screen from the state.</p>
+
+            <div class="icon-rows">
+              <div class="icon-row">
+                <div class="icon-circle" style="background: var(--color-actor-1)">&#127908;</div>
+                <div><strong>The lyric box</strong><p>Shows the current line, sliding in from the direction you moved</p></div>
+              </div>
+              <div class="icon-row">
+                <div class="icon-circle" style="background: var(--color-actor-2)">&#9644;</div>
+                <div><strong>Counter and progress bar</strong><p>"Line 3 / 14" and a bar filled to 21%</p></div>
+              </div>
+              <div class="icon-row">
+                <div class="icon-circle" style="background: var(--color-actor-3)">&#128266;</div>
+                <div><strong>The hidden announcer</strong><p>Reads "Line 3 of 14: ..." aloud for screen-reader users</p></div>
+              </div>
+              <div class="icon-row">
+                <div class="icon-circle" style="background: var(--color-actor-4)">&#128190;</div>
+                <div><strong>The save</strong><p>Writes the state to storage so a reload lands in the same place (module 5)</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Painting the screen</h2>
+            <p>A slice from the middle of <code>render()</code> in <code>src/script.ts</code>. Notice it never asks "what changed?". It simply rewrites every visible value from the state. That is what makes it safe to call from anywhere.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line">    els.box.textContent = line;</span>
+<span class="code-line">    els.counter.textContent = <span class="code-string">`Line ${state.idx+1} / ${total}`</span>;</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-keyword">const</span> pct = <span class="code-function">progressPercent</span>(state.idx, total);</span>
+<span class="code-line">    els.progressFill.style.width = <span class="code-string">`${pct}%`</span>;</span>
+<span class="code-line">    els.progress.<span class="code-function">setAttribute</span>(<span class="code-string">'aria-valuenow'</span>, <span class="code-function">String</span>(pct));</span>
+<span class="code-line">    els.progress.<span class="code-function">setAttribute</span>(<span class="code-string">'aria-valuetext'</span>, <span class="code-string">`${pct}% (${positionText(state.idx, total)})`</span>);</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Put the current line's words in the big lyric box.</p>
+                  <p class="tl">Write "Line 3 / 14". The +1 turns the computer's count-from-zero into a human's count-from-one.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Work out how far through the song we are, as a percentage.</p>
+                  <p class="tl">Stretch the coloured bar to that width.</p>
+                  <p class="tl">Tell assistive technology the number...</p>
+                  <p class="tl">...and a spoken-friendly version, like "21% (Line 3 of 14)".</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout-accent">
+              <div class="callout-icon">&#128161;</div>
+              <div class="callout-content">
+                <strong class="callout-title">State in, screen out</strong>
+                <p>"The view is a function of the state" is the idea behind React, Vue and Svelte. This app does it by hand in 30 lines. Ask an AI to "update the state, then call render()" rather than poking individual elements, and bugs where the screen and data disagree disappear.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The slide, and when to skip it</h2>
+            <p>Each new line slides in from the side you moved towards. Some people get motion sickness from animation, and their operating system can say so through a <span class="term" data-definition="A media query lets code or CSS ask the browser about the device or the user's settings, such as screen width, dark mode, or 'prefers reduced motion'.">media query</span> called <span class="term" data-definition="prefers-reduced-motion is an accessibility setting in macOS, Windows, iOS and Android. When it is on, well-behaved sites turn off decorative animation.">prefers-reduced-motion</span>.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line"><span class="code-comment">/** Restart the slide/fade animation on the lyrics box (skipped for reduced motion). */</span></span>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">animateLine</span>(direction: Direction){</span>
+<span class="code-line">    <span class="code-keyword">const</span> box = els.box;</span>
+<span class="code-line">    box.classList.<span class="code-function">remove</span>(<span class="code-string">'line-enter-forward'</span>, <span class="code-string">'line-enter-backward'</span>);</span>
+<span class="code-line">    <span class="code-keyword">if</span> (direction === <span class="code-string">'none'</span> || <span class="code-function">prefersReducedMotion</span>()) <span class="code-keyword">return</span>;</span>
+<span class="code-line">    <span class="code-keyword">void</span> box.offsetWidth; <span class="code-comment">// force reflow so the same animation can replay</span></span>
+<span class="code-line">    box.classList.<span class="code-function">add</span>(<span class="code-string">`line-enter-${direction}`</span>);</span>
+<span class="code-line">}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">What this does, in one sentence.</p>
+                  <p class="tl">Given a direction (forward, backward or none)...</p>
+                  <p class="tl">...grab the lyric box.</p>
+                  <p class="tl">Take off any slide that is still attached from last time.</p>
+                  <p class="tl">If we did not really move, or the user asked for less motion, stop here: the text just appears.</p>
+                  <p class="tl">Make the browser measure the box. This odd trick lets the same animation play twice in a row.</p>
+                  <p class="tl">Attach the slide class; the CSS does the actual 220ms movement.</p>
+                  <p class="tl">&nbsp;</p>
+                </div>
+              </div>
+            </div>
+            <p>The <span class="term" data-definition="CSS is the styling language of the web: colours, sizes, layout and animation. A CSS class is a named bundle of styles you can switch on and off from JavaScript.">CSS</span> in <code>public/style.css</code> has a second, independent guard: under reduced motion the animation is set to <code>none</code>. Belt and braces.</p>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module3">
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Yes. If a handler changes idx but never calls render(), the state is right but the screen is stale. Every path should go through goTo(), which ends in render()."
+                   data-explanation-wrong="Think about the rule from this module: the screen only updates when render() runs. The most likely cause is a code path that changed state.idx without calling render().">
+                <h3 class="quiz-question">After a new feature, the lyric changes but the counter still says the old line number. Where do you look first?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The progressPercent maths in lyrics-core.ts</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The new code path: it probably updates the box directly instead of setting state and calling render()</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The CSS for the counter</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Correct. The animation is decoration; the content still has to change. Reduced motion only removes the slide, never the update."
+                   data-explanation-wrong="Not quite. Reduced motion is about removing movement, not information. The early return in animateLine skips the slide, while render() still puts the new text in the box.">
+                <h3 class="quiz-question">A user with reduced motion switched on presses Next. What do they see?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The new line appears instantly, with no slide</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Nothing, because animations are how lines change</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>A slower, gentler slide</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Right. Put the rule in one place (render) so every route to a new line gets it, and keep the flashing effect behind the reduced-motion check."
+                   data-explanation-wrong="Every way of changing line ends in render(), so that is the single place to add behaviour that should happen on every line change. And any new motion should respect prefers-reduced-motion.">
+                <h3 class="quiz-question">You want the progress bar to flash when you reach the final line. What instruction do you give the AI?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>"Add a flash in the Next button's click handler"</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>"Add a flash in the End key handler"</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>"In render(), when isLast is true, add a flash class, and skip it under prefers-reduced-motion"</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>

@@ -1,0 +1,226 @@
+    <section class="module" id="module-4" style="background: var(--color-bg)">
+      <div class="module-content">
+        <header class="module-header animate-in">
+          <span class="module-number">04</span>
+          <h1 class="module-title">Every Door Leads to goTo</h1>
+          <p class="module-subtitle">Buttons, arrow keys, swipes and a slider, all funnelled into one path</p>
+        </header>
+
+        <div class="module-body">
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The metaphor: call buttons in a lift</h2>
+            <p>A lift has call buttons on every floor, inside the car, even a key switch for the caretaker. They all drive <strong>the same motor</strong>. The trainer works the same way: many ways in, one way to actually move.</p>
+
+            <div class="flow-steps">
+              <div class="flow-step"><div class="flow-step-num">&#8592;</div><p>Arrow keys, Home, End</p></div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step"><div class="flow-step-num">&#9757;</div><p>Swipe on the lyric</p></div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step"><div class="flow-step-num">&#9654;</div><p>Buttons, slider, timer</p></div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-step"><div class="flow-step-num">&#9881;</div><p>advance() / back() &rarr; goTo() &rarr; render()</p></div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Listen in: one press of the right arrow</h2>
+            <p>Here is what happens between the parts of <code>script.ts</code> when you press &rarr; on your keyboard. Each "person" is a real function or <span class="term" data-definition="An event is a signal the browser sends when something happens: a key press, a tap, a click. Code 'listens' for events and reacts.">event</span>.</p>
+
+            <div class="chat-window" id="chat-m4">
+              <div class="chat-messages">
+                <div class="chat-message" data-msg="0" data-sender="browser" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-2)">B</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-2)">Browser</span>
+                    <p>Keydown! Key is "ArrowRight". Anyone listening on the document?</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="1" data-sender="keydown" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-1)">K</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-1)">keydown handler</span>
+                    <p>Me. First question: was focus on a slider or text box? If so it is theirs, not mine.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="2" data-sender="isFormControl" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-3)">F</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-3)">isFormControl</span>
+                    <p>Nope, focus is on the page body. Also no Ctrl, Alt or Cmd held down. Go ahead.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="3" data-sender="keydown" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-1)">K</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-1)">keydown handler</span>
+                    <p>ArrowRight means forward. advance(), you are up.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="4" data-sender="advance" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-4)">A</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-4)">advance</span>
+                    <p>nextIndex says line 3 comes after line 2. goTo(2), please.</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="5" data-sender="goTo" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-actor-5)">G</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-actor-5)">goTo</span>
+                    <p>Clamped, it is safe. state.idx = 2. Calling render().</p>
+                  </div>
+                </div>
+                <div class="chat-message" data-msg="6" data-sender="render" style="display:none">
+                  <div class="chat-avatar" style="background: var(--color-accent)">R</div>
+                  <div class="chat-bubble">
+                    <span class="chat-sender" style="color: var(--color-accent)">render</span>
+                    <p>New line slides in from the right, bar goes to 21%, announcer reads it out, state saved. Done.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chat-typing" style="display:none">
+                <div class="chat-avatar" id="chat-m4-typing-avatar">?</div>
+                <div class="chat-typing-dots">
+                  <span class="typing-dot"></span>
+                  <span class="typing-dot"></span>
+                  <span class="typing-dot"></span>
+                </div>
+              </div>
+
+              <div class="chat-controls">
+                <button class="btn chat-next-btn">Next Message</button>
+                <button class="btn chat-all-btn">Play All</button>
+                <button class="btn chat-reset-btn">Replay</button>
+                <span class="chat-progress"></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">The keyboard switchboard</h2>
+            <p>From <code>setupUI()</code> in <code>src/script.ts</code>. An <span class="term" data-definition="An event listener is a function you register to be called whenever a specific event happens, like 'run this whenever a key is pressed'.">event listener</span> on the whole page decides what each key means.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line">    document.<span class="code-function">addEventListener</span>(<span class="code-string">'keydown'</span>, e<span class="code-operator">=&gt;</span>{</span>
+<span class="code-line">        <span class="code-comment">// Let sliders handle their own arrow/Home/End keys (avoids double-stepping)</span></span>
+<span class="code-line">        <span class="code-keyword">if</span> (<span class="code-function">isFormControl</span>(e.target) || e.altKey || e.ctrlKey || e.metaKey) <span class="code-keyword">return</span>;</span>
+<span class="code-line">        <span class="code-keyword">if</span>(e.key===<span class="code-string">'ArrowLeft'</span>) <span class="code-function">back</span>();</span>
+<span class="code-line">        <span class="code-keyword">else if</span>(e.key===<span class="code-string">'ArrowRight'</span>) <span class="code-function">advance</span>();</span>
+<span class="code-line">        <span class="code-keyword">else if</span>(e.key===<span class="code-string">' '</span>){ e.<span class="code-function">preventDefault</span>(); <span class="code-function">toggleTimer</span>(); }</span>
+<span class="code-line">        <span class="code-keyword">else if</span>(e.key===<span class="code-string">'Home'</span>){ e.<span class="code-function">preventDefault</span>(); <span class="code-function">goTo</span>(<span class="code-number">0</span>); }</span>
+<span class="code-line">        <span class="code-keyword">else if</span>(e.key===<span class="code-string">'End'</span>){ e.<span class="code-function">preventDefault</span>(); <span class="code-function">goTo</span>(lyrics.length-<span class="code-number">1</span>); }</span>
+<span class="code-line">    });</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">Whenever any key goes down anywhere on the page, run this:</p>
+                  <p class="tl">(why the next line exists)</p>
+                  <p class="tl">If a slider or text box has focus, or a shortcut key is held, ignore it. That key is not for us.</p>
+                  <p class="tl">Left arrow: one line back.</p>
+                  <p class="tl">Right arrow: one line forward.</p>
+                  <p class="tl">Space: stop the page scrolling, then start or pause auto-advance.</p>
+                  <p class="tl">Home: stop the page jumping to the top, then go to the first line.</p>
+                  <p class="tl">End: same idea, last line.</p>
+                  <p class="tl">End of the listener.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout-warning">
+              <div class="callout-icon">&#9888;</div>
+              <div class="callout-content">
+                <strong class="callout-title">The double-step bug this fixed</strong>
+                <p>Before the isFormControl check, pressing &rarr; while the seek slider had focus moved the slider one notch <em>and</em> ran advance(): two lines per press. <code>preventDefault()</code> is the browser's "I have got this, do not do your usual thing".</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Swipes: measuring the finger</h2>
+            <p>On a phone, a <span class="term" data-definition="A touch event is the phone equivalent of a mouse click. touchstart fires when a finger lands, touchend when it lifts, each with the finger's position.">touch event</span> records where the finger landed and where it lifted. The difference decides the direction.</p>
+
+            <div class="translation-block animate-in">
+              <div class="translation-code">
+                <span class="translation-label">src/script.ts</span>
+                <pre><code><span class="code-line"><span class="code-keyword">function</span> <span class="code-function">handleSwipe</span>(){</span>
+<span class="code-line">    <span class="code-keyword">const</span> distance = touchEndX - touchStartX;</span>
+<span class="code-line">    <span class="code-keyword">if</span> (Math.<span class="code-function">abs</span>(distance) &lt; MIN_SWIPE_DISTANCE) <span class="code-keyword">return</span>;</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-keyword">if</span> (distance &gt; <span class="code-number">0</span>) {</span>
+<span class="code-line">        <span class="code-function">back</span>();      <span class="code-comment">// Swipe right - previous</span></span>
+<span class="code-line">    } <span class="code-keyword">else</span> {</span>
+<span class="code-line">        <span class="code-function">advance</span>();   <span class="code-comment">// Swipe left - next</span></span>
+<span class="code-line">    }</span>
+<span class="code-line">}</span></code></pre>
+              </div>
+              <div class="translation-english">
+                <span class="translation-label">PLAIN ENGLISH</span>
+                <div class="translation-lines">
+                  <p class="tl">When the finger lifts, decide what the gesture meant:</p>
+                  <p class="tl">How far did it travel sideways? Positive means rightwards.</p>
+                  <p class="tl">Less than 50 pixels either way? Probably a tap or a wobble; do nothing.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">Moved right, like turning a page back...</p>
+                  <p class="tl">...go to the previous line.</p>
+                  <p class="tl">Otherwise it moved left...</p>
+                  <p class="tl">...so go to the next line.</p>
+                  <p class="tl">&nbsp;</p>
+                  <p class="tl">&nbsp;</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen animate-in">
+            <h2 class="screen-heading">Check your understanding</h2>
+            <div class="quiz-container" id="quiz-module4">
+              <div class="quiz-question-block"
+                   data-correct="b"
+                   data-explanation-right="Right. Add one more branch to the existing keydown listener and call the same advance() everyone else uses. No new movement logic needed."
+                   data-explanation-wrong="Not quite. The pattern is 'many doors, one motor'. A new key is just a new door: one more else-if in the keydown listener that calls advance().">
+                <h3 class="quiz-question">You want the "J" key to also go to the next line. What is the smallest correct change?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Write a new function that increments state.idx and updates the lyric box</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Add <code>else if(e.key==='j') advance();</code> to the keydown listener</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Add a second keydown listener just for J</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="c"
+                   data-explanation-right="Exactly. MIN_SWIPE_DISTANCE is 50 pixels; short, gentle swipes fall below it and are ignored on purpose. Lowering it is a one-number change."
+                   data-explanation-wrong="Look at the early return in handleSwipe: anything shorter than MIN_SWIPE_DISTANCE (50 px) is treated as a tap. Small hands on a big phone may not clear it.">
+                <h3 class="quiz-question">A tester says short swipes on their phone "do nothing", but long swipes work. What is the likely cause?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The service worker is blocking touch events</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>render() is too slow</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Their swipes are shorter than the 50px threshold</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <div class="quiz-question-block"
+                   data-correct="a"
+                   data-explanation-right="Yes. Typing a space into a text box would trigger play/pause without the guard. isFormControl already covers textarea, so the note field is safe."
+                   data-explanation-wrong="Think about what would happen when someone types a space into a text box. Without the isFormControl guard, every space would toggle auto-advance. The guard already covers input and textarea.">
+                <h3 class="quiz-question">You add a notes text box under the lyrics. Why does typing a space in it not start auto-advance?</h3>
+                <div class="quiz-options">
+                  <button class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>isFormControl sees the key came from a textarea, so the listener returns early</span></button>
+                  <button class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Browsers never send key events from text boxes</span></button>
+                  <button class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>preventDefault() blocks spaces everywhere</span></button>
+                </div>
+                <div class="quiz-feedback"></div>
+              </div>
+
+              <button class="quiz-check-btn" onclick="checkQuiz('quiz-module4')">Check Answers</button>
+              <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module4')">Try Again</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
