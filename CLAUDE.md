@@ -8,7 +8,9 @@ Lyrics Trainer is a Progressive Web App that displays song lyrics one line at a 
 
 ## Key Directories and Files
 
-- `/src/script.ts` - Main TypeScript source file
+- `/src/script.ts` - DOM wiring: rendering, events, persistence, theme
+- `/src/lyrics-core.ts` - Pure, DOM-free logic (parsing, navigation, progress, state validation, WCAG contrast). Put new testable logic here
+- `/scripts/serve.ts` - Bun static server for `/public`
 - `/public/` - Compiled assets and static files
 - `/lyrics/` - Lyrics text files (source files)
 - `/public/lyrics/` - Lyrics files accessible to the web app
@@ -20,31 +22,34 @@ Lyrics Trainer is a Progressive Web App that displays song lyrics one line at a 
 To run these commands, use the Bash tool:
 
 ```bash
-# Build the project
-npm run build
+# Install dependencies (Bun only: never npm/npx)
+bun install
+
+# Build the project (tsc: src/*.ts -> public/*.js)
+bun run build
 
 # Watch for changes during development
-npm run watch
+bun run watch
 
-# Serve the app locally (http://localhost:5173)
-npm run serve
+# Build and serve the app locally (http://localhost:5173)
+bun run serve
 
-# Run tests
-npm test
+# Run tests (Vitest + jsdom). Use `bun run test`, NOT `bun test`
+bun run test
 
 # Run tests in watch mode
-npm run test:watch
+bun run test:watch
 
 # Run tests with UI
-npm run test:ui
+bun run test:ui
 
 # Generate test coverage
-npm run test:coverage
+bun run test:coverage
 ```
 
 ## Testing
 
-Tests are written using Vitest and located in the `/tests` directory. The tests use JSDOM for browser environment simulation and include mocks for:
+Tests are written using Vitest and located in the `/tests` directory. `tests/lyrics-core.test.ts` tests real code; `tests/app.dom.test.ts` boots `src/script.ts` against the real `public/index.html`. The tests use JSDOM for browser environment simulation and include mocks for:
 
 - localStorage
 - fetch
@@ -75,7 +80,10 @@ Refer to `suggested_improvements.md` for planned enhancements and completed task
 
 ## When Modifying Code
 
-- Run tests after changes (`npm test`)
+- Run `bun run build` and `bun run test` after changes
+- Keep colour tokens in `public/style.css`; `tests/contrast.test.ts` fails if a text pair drops below WCAG AA
+- Animations must be skipped under `prefers-reduced-motion: reduce`
+- If you add a file to `public/`, add it to `ASSETS` in `public/service-worker.js` and bump `CACHE`
 - Update documentation when adding features
 - Follow TypeScript conventions used in `script.ts`
 - Ensure the app works in both desktop and mobile environments

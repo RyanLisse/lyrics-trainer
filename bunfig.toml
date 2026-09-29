@@ -1,0 +1,4 @@
+# The suite runs on Vitest + jsdom. `bun test` would use Bun's own runner
+# (no DOM), so redirect people to `bun run test` instead of failing confusingly.
+[test]
+preload = ["./scripts/bun-test-guard.ts"]

@@ -8,7 +8,7 @@
 
 .playlist-container {
   width: 100%;
-  background: rgba(0,0,0,0.03);
+  background: var(--surface);
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -51,13 +51,13 @@
   transition: background-color 0.2s;
 }
 
-.playlist-file-btn:hover {
+.playlist-file-btn:not(.active):hover {
   background: rgba(0,0,0,0.05);
 }
 
 .playlist-file-btn.active {
   background-color: var(--accent);
-  color: white;
+  color: var(--on-accent);
 }
 
 .playlist-upload-item {
@@ -71,7 +71,7 @@
 .playlist-upload-btn {
   padding: 0.5rem 1rem;
   background: var(--accent);
-  color: white;
+  color: var(--on-accent);
   border: none;
   border-radius: 0.3rem;
   cursor: pointer;
@@ -83,20 +83,20 @@
 }
 
 .playlist-error {
-  color: #d32f2f;
+  color: var(--error);
   text-align: center;
   padding: 1rem;
 }
 
-/* Dark theme adjustments */
-body.dark-theme .playlist-container,
-body:not(.dark-theme):not(.light-theme) .playlist-container {
-  background: rgba(255,255,255,0.05);
+/* Dark theme adjustments (manual dark, or auto dark when no manual choice) */
+body.dark-theme .playlist-file-btn:not(.active):hover {
+  background: rgba(255,255,255,0.1);
 }
 
-body.dark-theme .playlist-file-btn:hover,
-body:not(.dark-theme):not(.light-theme) .playlist-file-btn:hover {
-  background: rgba(255,255,255,0.1);
+@media (prefers-color-scheme: dark) {
+  body:not(.dark-theme):not(.light-theme) .playlist-file-btn:not(.active):hover {
+    background: rgba(255,255,255,0.1);
+  }
 }
 
 /* Mobile adjustments */

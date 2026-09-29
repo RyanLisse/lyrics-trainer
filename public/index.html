@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
-    <title>Lyrics Trainer – “This Is the Moment”</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#0069d9" />
+    <title>Lyrics Trainer</title>
     <link rel="icon" type="image/png" href="icon-192.png" />
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="playlist-styles.css" />
@@ -12,46 +13,55 @@
 <body>
 <header>
     <h1>Lyrics Trainer</h1>
-    <button id="themeToggle" aria-label="Toggle theme" title="Toggle theme">🌙</button>
+    <button id="themeToggle" aria-label="Switch to dark theme" title="Switch to dark theme">🌙</button>
 </header>
 
 <div id="lyrics-source" class="lyrics-source">
-    <button id="uploadBtn" class="secondary-btn">Upload Lyrics (.txt)</button>
+    <button id="uploadBtn" class="secondary-btn" aria-label="Upload lyrics from a .txt file">Upload Lyrics (.txt)</button>
     <input type="file" id="fileInput" accept=".txt" hidden>
-    <button id="resetBtn" class="secondary-btn" hidden>Reset to Default</button>
-    <span id="currentSource" class="source-label">Default Lyrics</span>
+    <button id="resetBtn" class="secondary-btn" aria-label="Reset to the default lyrics" hidden>Reset to Default</button>
+    <span id="currentSource" class="source-label" aria-live="polite">Default Lyrics</span>
 </div>
 
 <div id="playlist-view" class="playlist-view"></div>
 
-<div id="loading" class="status-message">Loading lyrics...</div>
-<div id="error" class="status-message error" hidden></div>
+<div id="loading" class="status-message" role="status">Loading lyrics...</div>
+<div id="error" class="status-message error" role="alert" hidden></div>
 
-<div id="content" hidden>
-    <div id="lyrics-box" aria-live="polite"></div>
+<main id="content" hidden>
+    <!-- visual line; screen readers get the richer #line-announcer text instead -->
+    <div id="lyrics-box" aria-hidden="true"></div>
+    <div id="line-announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
     <div id="counter" aria-hidden="true"></div>
 
-<!-- jump slider -->
-<input type="range" id="seek"
-       aria-label="Seek lyric line"
-       role="slider" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1" />
+    <!-- progress through the song -->
+    <div id="progress" class="progress" role="progressbar"
+         aria-label="Progress through lyrics"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="progress-fill" class="progress-fill"></div>
+    </div>
 
-<!-- auto‑advance controls -->
-<section class="auto">
-    <label for="delayRange">
-        Auto‑advance every <span id="delayLabel">3</span> s
-    </label>
-    <input type="range" id="delayRange" min="0.5" max="10" step="0.5" value="3"
-           aria-label="Auto‑advance delay (seconds)" />
-    <button id="playPauseBtn" aria-pressed="false">Play ▶️</button>
-</section>
+    <!-- jump slider -->
+    <input type="range" id="seek" min="0" max="0" value="0"
+           aria-label="Jump to lyric line" aria-valuetext="Line 1 of 1" />
+
+    <!-- auto-advance controls -->
+    <section class="auto" aria-label="Auto-advance">
+        <label for="delayRange">
+            Auto-advance every <span id="delayLabel">3</span> s
+        </label>
+        <input type="range" id="delayRange" min="0.5" max="10" step="0.5" value="3" />
+        <button id="playPauseBtn" aria-label="Play auto-advance">Play ▶️</button>
+    </section>
 
     <!-- manual nav buttons -->
-    <section class="nav">
+    <section class="nav" aria-label="Line navigation">
         <button id="prevBtn" aria-label="Previous line">Previous</button>
         <button id="nextBtn" aria-label="Next line">Next</button>
     </section>
-</div>
+
+    <p class="shortcuts">Keys: ← → to move, Space to play/pause, Home/End to jump.</p>
+</main>
 
 <script src="script.js" type="module"></script>
 <script>
@@ -63,7 +73,7 @@
 <script type="module">
     // Import and initialize playlist component
     import { PlaylistComponent } from './playlist-component.js';
-    
+
     // Wait for the main script to load first
     window.addEventListener('load', () => {
         setTimeout(() => {

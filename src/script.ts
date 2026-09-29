@@ -1,13 +1,34 @@
-interface TrainerState {
-    idx:   number;
-    delay: number;   // milliseconds
+import {
+    type TrainerState,
+    type Direction,
+    DEFAULT_STATE,
+    processLyricsText,
+    clampIndex,
+    nextIndex,
+    prevIndex,
+    progressPercent,
+    positionText,
+    lineAnnouncement,
+    parseState,
+    transitionDirection,
+} from './lyrics-core.js';
+
+// Globals shared with the playlist component (see index.html)
+declare global {
+    interface Window {
+        playlistComponent: any;
+        loadLyricsFromPath: (filePath: string, fileName: string) => Promise<boolean>;
+    }
 }
 
-const state: TrainerState = { idx:0, delay:3000 };
+const state: TrainerState = { ...DEFAULT_STATE };
 
 const els = {
     box:        document.getElementById('lyrics-box')  as HTMLDivElement,
     counter:    document.getElementById('counter')     as HTMLDivElement,
+    progress:   document.getElementById('progress')    as HTMLDivElement,
+    progressFill: document.getElementById('progress-fill') as HTMLDivElement,
+    announcer:  document.getElementById('line-announcer') as HTMLDivElement,
     seek:       document.getElementById('seek')        as HTMLInputElement,
     prev:       document.getElementById('prevBtn')     as HTMLButtonElement,
     next:       document.getElementById('nextBtn')     as HTMLButtonElement,
@@ -26,11 +47,14 @@ const els = {
 
 let lyrics: string[] = [];
 let timer: number | null = null;
+// Index shown by the previous render; -1 means "nothing shown yet" (no animation)
+let renderedIdx = -1;
 const STORAGE_KEY = 'lyricsTrainerState';
 const THEME_KEY = 'lyricsTrainerTheme';
 const CUSTOM_LYRICS_KEY = 'customLyrics';
 const LYRICS_SOURCE_KEY = 'lyricsSource';
 const DEFAULT_LYRICS_FILE = 'sonnet_18.txt';
+const DEFAULT_LYRICS_LABEL = 'Default: Sonnet 18';
 const LAST_LYRICS_FILE_KEY = 'lastLyricsFile';
 const LYRICS_PATH_KEY = 'lyricsPath';
 
@@ -41,62 +65,58 @@ const MIN_SWIPE_DISTANCE = 50;
 
 /* ---------- load / persist ---------- */
 function loadState(): TrainerState {
-    try { 
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved === null) {
-            return { idx:0, delay:3000 };
-        }
-        return JSON.parse(saved);
-    }
-    catch { return { idx:0, delay:3000 } }
+    try { return parseState(localStorage.getItem(STORAGE_KEY)); }
+    catch { return { ...DEFAULT_STATE }; }
 }
 function saveState(s: TrainerState){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 
 /* ---------- theme management ---------- */
+function setThemeButton(isDark: boolean){
+    els.themeToggle.textContent = isDark ? '☀️' : '🌙';
+    const label = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+    els.themeToggle.setAttribute('aria-label', label);
+    els.themeToggle.title = label;
+}
+
 function loadTheme(){
     const theme = localStorage.getItem(THEME_KEY);
     if (theme === 'dark') {
         document.body.classList.add('dark-theme');
-        els.themeToggle.textContent = '☀️';
+        setThemeButton(true);
     } else if (theme === 'light') {
         document.body.classList.add('light-theme');
-        els.themeToggle.textContent = '🌙';
+        setThemeButton(false);
     } else {
         // Auto theme - check system preference
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            els.themeToggle.textContent = '☀️';
-        } else {
-            els.themeToggle.textContent = '🌙';
-        }
+        setThemeButton(window.matchMedia('(prefers-color-scheme: dark)').matches);
     }
 }
 
 function toggleTheme(){
     const body = document.body;
-    const isDark = body.classList.contains('dark-theme') || 
-                   (!body.classList.contains('light-theme') && 
+    const isDark = body.classList.contains('dark-theme') ||
+                   (!body.classList.contains('light-theme') &&
                     window.matchMedia('(prefers-color-scheme: dark)').matches);
-    
+
     if (isDark) {
         body.classList.remove('dark-theme');
         body.classList.add('light-theme');
-        els.themeToggle.textContent = '🌙';
         localStorage.setItem(THEME_KEY, 'light');
     } else {
         body.classList.remove('light-theme');
         body.classList.add('dark-theme');
-        els.themeToggle.textContent = '☀️';
         localStorage.setItem(THEME_KEY, 'dark');
     }
+    setThemeButton(!isDark);
 }
 
 /* ---------- file handling ---------- */
 async function loadDefaultLyrics() {
     try {
         // Use the last path if available, or construct from last filename, or fall back to default
-        const lyricsPath = localStorage.getItem(LYRICS_PATH_KEY) || 
+        const lyricsPath = localStorage.getItem(LYRICS_PATH_KEY) ||
                          `lyrics/${localStorage.getItem(LAST_LYRICS_FILE_KEY) || DEFAULT_LYRICS_FILE}`;
-        
+
         const res = await fetch(`${lyricsPath}?v=${Date.now()}`, { cache: 'no-store' });
         if (!res.ok) {
             // Fall back to the default file if the last one can't be found
@@ -105,11 +125,11 @@ async function loadDefaultLyrics() {
                 throw new Error(`Failed to load lyrics (${defaultRes.status})`);
             }
             const text = await defaultRes.text();
-            
+
             // Reset the path to default
             localStorage.setItem(LYRICS_PATH_KEY, `lyrics/${DEFAULT_LYRICS_FILE}`);
             localStorage.setItem(LAST_LYRICS_FILE_KEY, DEFAULT_LYRICS_FILE);
-            
+
             return processLyricsText(text);
         }
         const text = await res.text();
@@ -120,70 +140,58 @@ async function loadDefaultLyrics() {
     }
 }
 
-function processLyricsText(text: string): string[] {
-    return text
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
-}
-
 async function processLyricsFile(file: File): Promise<string[]> {
-    const text = await file.text();
-    return text
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
+    return processLyricsText(await file.text());
 }
 
 function handleFileUpload(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    
+
     if (file) {
-        console.log('File selected:', file.name);
         els.loading.hidden = false;
         els.loading.textContent = 'Processing lyrics file...';
-        
+        els.error.hidden = true;
+
         processLyricsFile(file)
             .then(lines => {
-                console.log('Processed lines:', lines.length);
                 if (lines.length === 0) {
                     throw new Error('No lyrics found in file');
                 }
-                
+
                 lyrics = lines;
                 state.idx = 0;
-                
+                renderedIdx = -1;
+
                 // Save to localStorage
                 localStorage.setItem(CUSTOM_LYRICS_KEY, JSON.stringify(lines));
                 localStorage.setItem(LYRICS_SOURCE_KEY, 'custom');
                 localStorage.setItem(LAST_LYRICS_FILE_KEY, file.name);
-                
+
                 // We don't have a real path for uploaded files, so use a special identifier
                 localStorage.setItem(LYRICS_PATH_KEY, `custom:${file.name}`);
-                
+
                 // Update UI
                 els.currentSource.textContent = `Custom: ${file.name}`;
                 els.resetBtn.hidden = false;
                 els.loading.hidden = true;
                 els.content.hidden = false;
-                
+
                 // Update playlist if available
                 if (window.playlistComponent) {
                     window.playlistComponent.refresh();
                 }
-                
-                console.log('About to render, current lyrics:', lyrics[0]);
+
                 render();
-                
+
                 // Reset the input value so the same file can be selected again
                 input.value = '';
             })
             .catch(error => {
                 els.loading.hidden = true;
                 els.error.hidden = false;
-                els.error.textContent = error instanceof Error 
-                    ? `Error: ${error.message}` 
+                els.error.textContent = error instanceof Error
+                    ? `Error: ${error.message}`
                     : 'Failed to process lyrics file';
                 console.error('Failed to process file:', error);
             });
@@ -195,17 +203,18 @@ async function resetToDefaultLyrics() {
     localStorage.removeItem(LYRICS_SOURCE_KEY);
     localStorage.setItem(LAST_LYRICS_FILE_KEY, DEFAULT_LYRICS_FILE);
     localStorage.setItem(LYRICS_PATH_KEY, `lyrics/${DEFAULT_LYRICS_FILE}`);
-    
+
     try {
         // Load default lyrics
         lyrics = await loadDefaultLyrics();
-        
+
         // Reset UI
-        els.currentSource.textContent = 'Default: This is the Moment';
+        els.currentSource.textContent = DEFAULT_LYRICS_LABEL;
         els.resetBtn.hidden = true;
         state.idx = 0;
+        renderedIdx = -1;
         render();
-        
+
         // Update playlist if available
         if (window.playlistComponent) {
             window.playlistComponent.refresh();
@@ -221,13 +230,6 @@ async function resetToDefaultLyrics() {
 // Initialize theme before anything else
 loadTheme();
 
-// Append a cache‑buster query string to avoid 304/empty-body responses
-// Add properties to Window interface to make TypeScript happy
-interface Window {
-    playlistComponent: any;
-    loadLyricsFromPath: Function;
-}
-
 /**
  * Load lyrics from a specific path
  * @param filePath - Path to the lyrics file
@@ -238,56 +240,58 @@ async function loadLyricsFromPath(filePath: string, fileName: string) {
         els.loading.hidden = false;
         els.loading.textContent = 'Loading lyrics...';
         els.content.hidden = true;
-        
-        // Fetch the lyrics file
+        els.error.hidden = true;
+
+        // Fetch the lyrics file (cache-buster avoids 304/empty-body responses)
         const res = await fetch(`${filePath}?v=${Date.now()}`, { cache: 'no-store' });
         if (!res.ok) {
             throw new Error(`Failed to load lyrics (${res.status})`);
         }
-        
+
         const text = await res.text();
         const processedLyrics = processLyricsText(text);
-        
+
         if (processedLyrics.length === 0) {
             throw new Error('No lyrics found in file');
         }
-        
+
         // Update the lyrics and state
         lyrics = processedLyrics;
         state.idx = 0;
-        
+        renderedIdx = -1;
+
         // Save path information
         localStorage.setItem(LYRICS_PATH_KEY, filePath);
         localStorage.setItem(LAST_LYRICS_FILE_KEY, fileName);
         localStorage.setItem(LYRICS_SOURCE_KEY, 'playlist');
-        
+
         // Update UI
         els.currentSource.textContent = `Playlist: ${fileName.replace(/\.[^/.]+$/, "")}`;
         els.resetBtn.hidden = false;
-        
+
         // Hide loading, show content
         els.loading.hidden = true;
         els.content.hidden = false;
-        
+
         // Render the lyrics
         render();
-        
+
         // Update playlist active item if available
         if (window.playlistComponent) {
             window.playlistComponent.setActiveFile(filePath);
         }
-        
+
         return true;
     } catch (error) {
         els.loading.hidden = true;
         els.error.hidden = false;
         els.content.hidden = true;
-        
-        els.error.textContent = error instanceof Error 
-            ? `Error: ${error.message}` 
+
+        els.error.textContent = error instanceof Error
+            ? `Error: ${error.message}`
             : 'Failed to load lyrics file';
         console.error('Failed to load lyrics:', error);
-        
+
         return false;
     }
 }
@@ -296,10 +300,10 @@ async function loadLyricsFromPath(filePath: string, fileName: string) {
     try {
         // Make loadLyricsFromPath available globally
         window.loadLyricsFromPath = loadLyricsFromPath;
-        
+
         // Check for custom lyrics first
         const lyricsSource = localStorage.getItem(LYRICS_SOURCE_KEY);
-        
+
         if (lyricsSource === 'custom') {
             const customLyrics = localStorage.getItem(CUSTOM_LYRICS_KEY);
             if (customLyrics) {
@@ -310,31 +314,30 @@ async function loadLyricsFromPath(filePath: string, fileName: string) {
             } else {
                 // Fallback to default if custom lyrics are missing
                 lyrics = await loadDefaultLyrics();
-                els.currentSource.textContent = `Default: This is the Moment`;
+                els.currentSource.textContent = DEFAULT_LYRICS_LABEL;
             }
         } else {
             lyrics = await loadDefaultLyrics();
-            els.currentSource.textContent = `Default: This is the Moment`;
+            els.currentSource.textContent = DEFAULT_LYRICS_LABEL;
         }
-        
+
         if (!Array.isArray(lyrics) || lyrics.length === 0) {
             // noinspection ExceptionCaughtLocallyJS
             throw new Error('Invalid lyrics format');
         }
-        
+
         const st = loadState();
-        state.idx   = Math.min(st.idx, lyrics.length-1);
+        state.idx   = clampIndex(st.idx, lyrics.length);
         state.delay = st.delay;
-        
+
         // Hide loading, show content
         els.loading.hidden = true;
         els.content.hidden = false;
-        
+
         setupUI();
         render();
-        
-        // Initialize the playlist component - we'll do this in a script tag instead
-        // to avoid TypeScript module import issues
+
+        // The playlist component is created by a module script in index.html
         setTimeout(() => {
             const currentPath = localStorage.getItem(LYRICS_PATH_KEY);
             if (currentPath && window.playlistComponent) {
@@ -344,13 +347,13 @@ async function loadLyricsFromPath(filePath: string, fileName: string) {
     } catch (error) {
         els.loading.hidden = true;
         els.error.hidden = false;
-        
+
         // Check if offline
         if (!navigator.onLine) {
             els.error.textContent = 'No internet connection. Please check your connection and refresh.';
         } else {
-            els.error.textContent = error instanceof Error 
-                ? `Error: ${error.message}` 
+            els.error.textContent = error instanceof Error
+                ? `Error: ${error.message}`
                 : 'Failed to load lyrics. Please refresh the page.';
         }
         console.error('Failed to load lyrics:', error);
@@ -358,34 +361,73 @@ async function loadLyricsFromPath(filePath: string, fileName: string) {
 })();
 
 /* ---------- helpers ---------- */
+function prefersReducedMotion(): boolean {
+    return typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/** Restart the slide/fade animation on the lyrics box (skipped for reduced motion). */
+function animateLine(direction: Direction){
+    const box = els.box;
+    box.classList.remove('line-enter-forward', 'line-enter-backward');
+    if (direction === 'none' || prefersReducedMotion()) return;
+    void box.offsetWidth; // force reflow so the same animation can replay
+    box.classList.add(`line-enter-${direction}`);
+}
+
 function render(){
-    els.box.textContent = lyrics[state.idx];
-    els.counter.textContent = `Line ${state.idx+1} / ${lyrics.length}`;
+    const total = lyrics.length;
+    const line = lyrics[state.idx];
+    const isLast = state.idx === total - 1;
+
+    if (renderedIdx !== -1) animateLine(transitionDirection(renderedIdx, state.idx));
+    const lineChanged = renderedIdx !== state.idx;
+    renderedIdx = state.idx;
+
+    els.box.textContent = line;
+    els.counter.textContent = `Line ${state.idx+1} / ${total}`;
+
+    const pct = progressPercent(state.idx, total);
+    els.progressFill.style.width = `${pct}%`;
+    els.progress.setAttribute('aria-valuenow', String(pct));
+    els.progress.setAttribute('aria-valuetext', `${pct}% (${positionText(state.idx, total)})`);
+
+    // Only announce real line changes, so tweaking the delay doesn't re-read the line
+    if (lineChanged) els.announcer.textContent = lineAnnouncement(state.idx, total, line);
+
     els.prev.disabled = state.idx === 0;
-    els.next.textContent = (state.idx === lyrics.length-1) ? 'Restart' : 'Next';
-    els.seek.max = String(lyrics.length-1);
+    els.next.textContent = isLast ? 'Restart' : 'Next';
+    els.next.setAttribute('aria-label', isLast ? 'Restart from the first line' : 'Next line');
+    els.seek.max = String(total-1);
     els.seek.value = String(state.idx);
-    els.seek.setAttribute('aria-valuemax', String(lyrics.length));
-    els.seek.setAttribute('aria-valuenow', String(state.idx+1));
+    els.seek.setAttribute('aria-valuetext', positionText(state.idx, total));
     els.delayRange.value = String(state.delay/1000);
     els.delayLabel.textContent = String(state.delay/1000);
     saveState(state);
 }
-function advance(){
-    state.idx = (state.idx === lyrics.length-1) ? 0 : state.idx+1;
+function goTo(idx: number){
+    state.idx = clampIndex(idx, lyrics.length);
     render();
 }
+function advance(){ goTo(nextIndex(state.idx, lyrics.length)); }
+function back(){ goTo(prevIndex(state.idx)); }
 function startTimer(){
     timer = window.setInterval(advance, state.delay);
     els.playPause.textContent = 'Pause ⏸';
-    els.playPause.setAttribute('aria-pressed','true');
+    els.playPause.setAttribute('aria-label', 'Pause auto-advance');
 }
 function stopTimer(){
     if(timer!==null){ clearInterval(timer); timer=null; }
     els.playPause.textContent = 'Play ▶️';
-    els.playPause.setAttribute('aria-pressed','false');
+    els.playPause.setAttribute('aria-label', 'Play auto-advance');
 }
 function toggleTimer(){ timer ? stopTimer() : startTimer(); }
+
+/** True when a keypress belongs to a form control (e.g. arrows on a slider). */
+function isFormControl(target: EventTarget | null): boolean {
+    return target instanceof HTMLElement &&
+        (target.matches('input, select, textarea') || target.isContentEditable);
+}
 
 /* ---------- event wiring ---------- */
 function setupUI(){
@@ -397,25 +439,27 @@ function setupUI(){
     };
     els.fileInput.onchange = handleFileUpload;
     els.resetBtn.onclick = resetToDefaultLyrics;
-    els.prev.onclick = () => { if(state.idx>0){ state.idx--; render(); } };
+    els.prev.onclick = back;
     els.next.onclick = advance;
-    els.seek.oninput = e => { state.idx = Number((e.target as HTMLInputElement).value); render(); };
+    els.seek.oninput = e => goTo(Number((e.target as HTMLInputElement).value));
     els.playPause.onclick = toggleTimer;
     els.delayRange.oninput = e=>{
         state.delay = Number((e.target as HTMLInputElement).value) * 1000;
         els.delayLabel.textContent = String(state.delay/1000);
+        saveState(state);
         if(timer){ stopTimer(); startTimer(); }
     };
     document.addEventListener('keydown', e=>{
-        if(e.key==='ArrowLeft' && !els.prev.disabled) els.prev.click();
-        else if(e.key==='ArrowRight') els.next.click();
+        // Let sliders handle their own arrow/Home/End keys (avoids double-stepping)
+        if (isFormControl(e.target) || e.altKey || e.ctrlKey || e.metaKey) return;
+        if(e.key==='ArrowLeft') back();
+        else if(e.key==='ArrowRight') advance();
         else if(e.key===' '){ e.preventDefault(); toggleTimer(); }
-        else if(e.key==='Home'){ state.idx=0; render(); }
-        else if(e.key==='End'){ state.idx=lyrics.length-1; render(); }
+        else if(e.key==='Home'){ e.preventDefault(); goTo(0); }
+        else if(e.key==='End'){ e.preventDefault(); goTo(lyrics.length-1); }
     });
 }
 
-/* ---------- clean up ---------- */
 /* ---------- touch gestures ---------- */
 function handleTouchStart(e: TouchEvent){
     touchStartX = e.changedTouches[0].screenX;
@@ -429,19 +473,16 @@ function handleTouchEnd(e: TouchEvent){
 function handleSwipe(){
     const distance = touchEndX - touchStartX;
     if (Math.abs(distance) < MIN_SWIPE_DISTANCE) return;
-    
-    if (distance > 0 && state.idx > 0) {
-        // Swipe right - previous
-        state.idx--;
-        render();
-    } else if (distance < 0) {
-        // Swipe left - next
-        advance();
+
+    if (distance > 0) {
+        back();      // Swipe right - previous
+    } else {
+        advance();   // Swipe left - next
     }
 }
 
 // Setup touch listeners
-els.box.addEventListener('touchstart', handleTouchStart);
+els.box.addEventListener('touchstart', handleTouchStart, { passive: true });
 els.box.addEventListener('touchend', handleTouchEnd);
 
 /* ---------- clean up ---------- */

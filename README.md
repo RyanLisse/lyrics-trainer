@@ -1,40 +1,65 @@
 # Lyrics Trainer
 
-A feature-rich offline-capable Progressive Web App that steps you through song lyrics one line at a time. Includes "This Is the Moment" by default, with support for uploading custom lyrics from text files. Features manual and automatic navigation, keyboard support, persistent state, and mobile-friendly interface.
+An offline-capable Progressive Web App that steps you through song lyrics (or poems) one line at a time, so you can memorise them. It ships with two public-domain texts (Shakespeare's Sonnet 18 and "Casey at the Bat") and lets you upload your own `.txt` files. You get manual and automatic navigation, keyboard and swipe support, persistent state, and a mobile-friendly layout.
+
+## Credit and origin
+
+This is a derived version of **Ken Kousen's** `lyrics-trainer` exercise from his Claude Code training course:
+<https://github.com/kousen/claude-code-training/tree/main/exercises/javascript/lyrics-trainer>
+
+The original is MIT-licensed, © Kenneth Kousen. It's a great teaching project, and all the core ideas (one line at a time, playlist, upload, PWA) are his. This version keeps the same app and adds the changes listed below. Any bugs I introduced are mine.
+
+### What changed in this version
+
+- **Bun tooling.** `bun install` / `bun run …` replaces npm. `package-lock.json` became `bun.lock`, and the `serve` package was replaced by a 20-line `Bun.serve` script (`scripts/serve.ts`). Tests still run on Vitest + jsdom.
+- **Progress bar.** A `role="progressbar"` bar shows how far through the song you are.
+- **Smooth line transitions.** Each new line slides in from the direction you moved. The animation is skipped when the OS asks for reduced motion (`prefers-reduced-motion`).
+- **Accessibility.**
+  - A hidden live region announces "Line 3 of 14: …" to screen readers on every line change.
+  - Labels describe the action a control will take ("Restart from the first line", "Pause auto-advance", "Switch to dark theme").
+  - The seek slider has an `aria-valuetext`.
+  - Every control gets a visible `:focus-visible` ring, and pinch-zoom is no longer disabled.
+- **WCAG AA contrast.** Every text colour pair passes 4.5:1 in both themes, enforced by a test. Dark-mode buttons were 3.07:1 and error text 3.35:1 before.
+- **Offline mode actually works.** The original service worker precached a non-existent `lyrics.json`, so installation failed. It now caches the real app shell and bundled lyrics, and drops old cache versions.
+- **Small fixes.**
+  - Arrow keys on a focused slider no longer move two lines.
+  - Home/End no longer scroll the page.
+  - Corrupt saved state is repaired instead of trusted.
+  - The default-lyrics label now says "Sonnet 18" instead of the old "This is the Moment".
+  - `\r\n` files parse cleanly.
+- **Tests against real code.** Pure logic moved to `src/lyrics-core.ts` and is tested directly. A jsdom test boots the real app against the real `index.html`. The suite has 104 tests and no skips.
 
 ## Features
 
-- **Display lyrics one line at a time** with enhanced visibility
-- **Upload custom lyrics** from text files (.txt format) to the lyrics folder
+- **Display lyrics one line at a time** with animated transitions and a progress bar
+- **Upload custom lyrics** from text files (.txt format)
+- **Playlist** of bundled lyrics files
 - **Manual navigation** (Next, Previous, Seek slider, Keyboard shortcuts)
 - **Mobile-friendly** with swipe gestures and responsive design
 - **Theme support** with manual dark/light toggle and system preference detection
 - **Auto-advance** with configurable delay (0.5-10 seconds)
 - **Persistent state** via `localStorage` (remembers position, settings, and custom lyrics)
 - **Offline support** via service worker (full PWA capabilities)
-- **Error handling** with user-friendly messages
-- **Touch-optimized** interface with proper touch targets
-- **Stable layout** that doesn't jump with varying text lengths
+- **Accessible**: screen-reader announcements, focus rings, WCAG AA contrast, reduced-motion support
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (>=14)
-- npm
+- [Bun](https://bun.sh) 1.1 or newer
 
 ### Installation
 
 ```bash
-npm install
+bun install
 ```
 
 ### Build
 
-Compile the TypeScript sources to the `public/` directory:
+Compile the TypeScript sources (`src/`) to the `public/` directory:
 
 ```bash
-npm run build
+bun run build
 ```
 
 ### Development
@@ -42,41 +67,35 @@ npm run build
 Rebuild on changes:
 
 ```bash
-npm run watch
+bun run watch
 ```
 
 ### Serve
 
-Serve the compiled app locally on http://localhost:5173:
+Build, then serve `public/` on http://localhost:5173:
 
 ```bash
-npm run serve
+bun run serve
 ```
+
+To use a different port, run `bun scripts/serve.ts 8080` (after a build).
 
 ### Testing
 
-Run the test suite:
+Run the test suite (Vitest + jsdom):
 
 ```bash
-npm test
+bun run test
 ```
 
-Run tests in watch mode (for development):
+Use `bun run test`, not `bun test`. The bare command starts Bun's own test runner, which has no DOM, so `bunfig.toml` stops it with a pointer to the right command.
+
+Other test commands:
 
 ```bash
-npm run test:watch
-```
-
-Run tests with UI dashboard:
-
-```bash
-npm run test:ui
-```
-
-Generate test coverage report:
-
-```bash
-npm run test:coverage
+bun run test:watch      # rerun on changes
+bun run test:ui         # Vitest UI dashboard
+bun run test:coverage   # coverage report (istanbul)
 ```
 
 See [TESTING.md](TESTING.md) for more details on the testing approach.
@@ -84,8 +103,9 @@ See [TESTING.md](TESTING.md) for more details on the testing approach.
 ### Mobile Access
 
 To access on mobile devices on the same network:
-1. Find your computer's IP address
-2. Navigate to `http://[YOUR-IP]:5173` on your mobile device
+1. Run `bun run serve` (it listens on all interfaces)
+2. Find your computer's IP address
+3. Navigate to `http://[YOUR-IP]:5173` on your mobile device
 
 ## Usage
 
@@ -93,7 +113,7 @@ To access on mobile devices on the same network:
 - **Navigate**: Use Previous/Next buttons, arrow keys, or the seek slider
 - **Play/Pause**: Press spacebar or click the Play button
 - **Theme**: Click the moon/sun icon to toggle dark/light mode
-- **Keyboard shortcuts**:
+- **Keyboard shortcuts** (ignored while a slider has focus):
   - `←` Previous line
   - `→` Next line
   - `Space` Play/Pause
@@ -107,8 +127,8 @@ To access on mobile devices on the same network:
 
 ### Custom Lyrics
 - **Upload**: Click "Upload Lyrics (.txt)" and select a text file
-- **Format**: One line per row in the text file
-- **Lyrics Folder**: All lyrics files are stored in the `lyrics` folder
+- **Format**: One line per row in the text file (blank lines are skipped)
+- **Lyrics Folder**: Bundled lyrics live in `lyrics/` and are served from `public/lyrics/` (listed in `public/lyrics-list.json`)
 - **Reset**: Click "Reset to Default" to return to the original lyrics
 - **Persistence**: Last used lyrics file is remembered between sessions
 
@@ -116,77 +136,49 @@ To access on mobile devices on the same network:
 
 ```
 .
-├── lyrics/                     # Lyrics text files
-│   ├── sonnet_18.txt           # Default lyrics (public domain)
-│   ├── casey_at_the_bat.txt    # Second sample (public domain)
-│   └── ...                     # User-added lyrics files
-├── public/                     # Compiled assets & static files
+├── lyrics/                     # Lyrics text files (source copies)
+├── public/                     # Static site root
 │   ├── index.html
-│   ├── style.css
-│   ├── script.js
+│   ├── style.css               # Colour tokens, transitions, progress bar
+│   ├── playlist-styles.css
+│   ├── playlist-api.js         # Reads lyrics-list.json
+│   ├── playlist-component.js   # Playlist UI
+│   ├── lyrics-list.json
 │   ├── lyrics/                 # Served lyrics files
-│   │   ├── sonnet_18.txt       # Default lyrics
-│   │   └── casey_at_the_bat.txt
 │   ├── manifest.json
 │   ├── service-worker.js
-│   ├── icon-192.png            # PWA icon
-│   └── icon-512.png            # PWA icon
-├── src/                        # TypeScript source files
-│   └── script.ts
-├── tests/                      # Test files
-│   ├── setup.ts                # Test setup and mocks
-│   ├── utils.test.ts           # Utility function tests
-│   ├── state.test.ts           # State management tests
-│   └── theme.test.ts           # Theme functionality tests
-├── suggested_improvements.md   # Roadmap & future enhancements
-├── TESTING.md                  # Testing documentation
-├── vitest.config.ts            # Vitest configuration
-├── package.json
+│   ├── icon-192.png / icon-512.png
+│   ├── script.js               # (generated by `bun run build`)
+│   └── lyrics-core.js          # (generated by `bun run build`)
+├── src/
+│   ├── lyrics-core.ts          # Pure logic: parsing, navigation, progress, state, contrast
+│   └── script.ts               # DOM wiring, rendering, events, persistence
+├── scripts/
+│   ├── serve.ts                # Bun static server for public/
+│   └── bun-test-guard.ts       # Redirects `bun test` to `bun run test`
+├── tests/                      # Vitest suites (see TESTING.md)
+├── bunfig.toml
+├── vitest.config.ts
 ├── tsconfig.json
-└── README.md
+└── package.json
 ```
 
 ## PWA / Offline Support
 
 The app is a full Progressive Web App with:
-- Service worker for offline functionality
-- App manifest for installation
-- Icons for home screen
-- Network-first caching strategy for lyrics
-
-## Recent Improvements
-
-- ✅ Added loading states and error handling
-- ✅ Implemented manual theme toggle
-- ✅ Enhanced mobile experience with swipe gestures
-- ✅ Improved lyrics visibility
-- ✅ Fixed localStorage handling
-- ✅ Added responsive design
-- ✅ Created PWA icons
-- ✅ Added custom lyrics upload from text files
-- ✅ Created dedicated lyrics folder for better organization
-- ✅ Fixed layout jumping with stable dimensions
+- A service worker that precaches the app shell and bundled lyrics
+- Network-first loading for lyrics (with cache fallback when offline)
+- App manifest and icons for installation
 
 ## Suggested Improvements
 
-See [suggested_improvements.md](suggested_improvements.md) for ideas on future enhancements, including:
-- Multiple song support
-- Lyrics search functionality
-- Animation transitions
-- Progress indicators
-- And more...
+See [suggested_improvements.md](suggested_improvements.md) for what has been done and what's still open (lyrics search, bookmarks, text-size controls, .lrc support, and more).
 
 ## Deployment
 
-This app can be deployed to any static hosting service:
-
-- **GitHub Pages**: Push to a `gh-pages` branch or configure in repository settings
-- **Netlify**: Connect your GitHub repo and deploy the `public` directory
-- **Vercel**: Import your GitHub repository
-- **Any web server**: Upload the contents of the `public` directory
-
-The app is completely static after building and requires no backend services.
+This app can be deployed to any static hosting service. Run `bun run build` first, then publish the `public/` directory (GitHub Pages, Netlify, Vercel, or any web server). It needs no backend.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT. See [LICENSE](LICENSE).
+Original work © 2025 Kenneth Kousen; modifications © 2026 Ryan Lisse.

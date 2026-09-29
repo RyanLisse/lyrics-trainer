@@ -10,7 +10,9 @@ function processLyricsText(text: string): string[] {
 
 // Mock file loading function
 async function mockLoadDefaultLyrics(filePath: string, mockResponse: any = null): Promise<string[]> {
-  if (mockResponse) {
+  if (mockResponse instanceof Error) {
+    global.fetch = vi.fn().mockRejectedValue(mockResponse);
+  } else if (mockResponse) {
     global.fetch = vi.fn().mockResolvedValue(mockResponse);
   } else {
     // Default mock implementation of fetch
@@ -79,9 +81,13 @@ describe('File Handling', () => {
     ).rejects.toThrow('Failed to load lyrics (404)');
   });
   
-  // Skipping this test for now as the error handling in the mock is tricky
-  it.skip('should handle fetch network errors', async () => {
-    // This would need to be refactored to properly test the error case
+  it('should propagate fetch network errors', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await expect(
+      mockLoadDefaultLyrics('lyrics/sonnet_18.txt', new TypeError('Failed to fetch'))
+    ).rejects.toThrow('Failed to fetch');
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
   
   it('should append cache-busting parameter to fetch URL', async () => {

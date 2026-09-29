@@ -11,6 +11,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "lib": ["es2020", "dom"],
+    "types": []
   },
   "include": ["src/**/*"]
 }

@@ -15,19 +15,20 @@ This project uses [Vitest](https://vitest.dev/) as the primary testing framework
 The tests are organized as follows:
 
 - `/tests` - Main test directory
-  - `setup.ts` - Common test setup and mocks
-  - `utils.test.ts` - Tests for utility functions
-  - `state.test.ts` - Tests for state management
-  - `theme.test.ts` - Tests for theme functionality
+  - `lyrics-core.test.ts` - Unit tests for the real pure logic in `src/lyrics-core.ts`
+  - `app.dom.test.ts` - Integration test: boots `src/script.ts` against `public/index.html` in jsdom (progress bar, live region, ARIA labels, transitions, reduced motion, keyboard, persistence)
+  - `contrast.test.ts` - WCAG AA contrast check of the colour tokens in `public/style.css`
+  - `utils.test.ts`, `state.test.ts`, `theme.test.ts`, `navigation.test.ts`, `file-handling.test.ts`, `file-selection.test.ts`, `playlist-*.test.ts` - Original suites (from the upstream exercise); they test local re-implementations of the logic
+  - `setup.ts` - Shared mocks (not registered in `vitest.config.ts`; kept from upstream for reference)
 
 ## Running Tests
 
-Several npm scripts are available for testing:
+Several Bun scripts are available for testing:
 
-- `npm test` - Run all tests once
-- `npm run test:watch` - Run tests in watch mode (rerun on changes)
-- `npm run test:ui` - Run tests with UI dashboard
-- `npm run test:coverage` - Generate test coverage report
+- `bun run test` - Run all tests once (use this, not `bun test`, which starts Bun's DOM-less runner)
+- `bun run test:watch` - Run tests in watch mode (rerun on changes)
+- `bun run test:ui` - Run tests with UI dashboard
+- `bun run test:coverage` - Generate test coverage report
 
 ## Test Strategy
 
